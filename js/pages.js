@@ -58,7 +58,7 @@
     const hero = `<div class="hero"><img src="assets/logo.png" alt="" onerror="this.style.display='none'"><div>
       <div class="kicker" style="color:#8FB0EE">Comunidad de managers · PES</div>
       <h1>${esc(U.CFG.LEAGUE_FULL_NAME || league.full_name || 'UEFA Manager League')}</h1>
-      <p>Los partidos se juegan en la consola. Acá se registra todo lo demás: tabla, fixture, estadísticas, planteles y el mercado de pases entre DTs.</p>
+      <p>La comunidad de fútbol virtual donde cada participante dirige su club, arma su plantel y define sus tácticas para competir en ligas y copas con partidos simulados en PES. Un espacio para vivir la pasión de ser DT, compartir con otros fanáticos y hacer historia con tu equipo.</p>
       <div class="row">${!S.user ? '<a class="btn" style="background:#fff;color:#0A2A66" href="#/login">Ingresar o registrarme</a>' : ''}${isAdmin() ? '<a class="btn" href="#/nueva-temporada">+ Nueva temporada</a>' : ''}</div></div></div>`;
     if (!seasons.length) { app.innerHTML = hero + '<div class="empty">Todavía no hay temporadas creadas.</div>'; return; }
     const active = seasons.find((s) => s.status === 'active') || seasons[0];
