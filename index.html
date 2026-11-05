@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0A2A66">
+  <title>UML</title>
+  <link rel="icon" href="assets/logo.png">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-row">
+      <a class="brand" href="#/"><img src="assets/logo.png" alt="" onerror="this.outerHTML='<span class=logo-fallback>⚽</span>'"><span id="brand-name">UML</span></a>
+      <div class="userbox" id="userbox"></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+  </header>
+
+  <main id="app" class="container"><div class="loading">Cargando…</div></main>
+
+  <div id="toast" class="toast"></div>
+  <div id="modal" class="modal hidden"><div class="modal-card" id="modal-card"></div></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/pages.js"></script>
+  <script src="js/market.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
