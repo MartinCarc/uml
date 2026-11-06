@@ -169,7 +169,7 @@
     if (!m) return ($('#app').innerHTML = '<div class="empty">Partido inexistente.</div>');
     const c = comp(m.competition_id); const h = club(m.home_club_id), a = club(m.away_club_id); const played = m.status === 'played';
     const evs = S.events.filter((e) => e.match_id === mid);
-    const canEdit = isAdmin() || (isSim() && m.simulator_id === S.user?.id && !m.locked);
+    const canEdit = !S.season.historical && (isAdmin() || (isSim() && m.simulator_id === S.user?.id && !m.locked));
     const goals = (cid) => evs.filter((e) => e.club_id === cid && (e.type === 'goal' || e.type === 'own_goal')).map((e) => `<div class="list-item" style="justify-content:flex-start;gap:8px"><span class="badge blue">GOL</span><span><b>${esc(player(e.player_id)?.name || 'Sin jugador')}</b>${e.type === 'own_goal' ? ' <span class="muted small">(en contra)</span>' : ''}${e.assist_player_id ? ` <span class="muted small">· asist. ${esc(player(e.assist_player_id)?.name)}</span>` : ''}</span></div>`).join('') || '<div class="muted small">Sin goles</div>';
     const cards = evs.filter((e) => ['yellow', 'second_yellow', 'red'].includes(e.type)).map((e) => `<div class="list-item" style="justify-content:flex-start;gap:8px">${e.type === 'yellow' ? '<span class="pill-yellow"></span>' : e.type === 'second_yellow' ? '<span class="pill-yellow"></span><span class="pill-red"></span>' : '<span class="pill-red"></span>'}<span><b>${esc(player(e.player_id)?.name || '?')}</b> <span class="muted small">· ${esc(club(e.club_id)?.name)} · ${EVENT[e.type]}</span></span>${sancBadges(e.player_id)}</div>`).join('') || '<div class="muted small">Sin tarjetas</div>';
     const inj = evs.filter((e) => e.type.startsWith('injury')).map((e) => `<div class="list-item" style="justify-content:flex-start;gap:8px"><span class="badge amber">+</span><span><b>${esc(player(e.player_id)?.name || '?')}</b> <span class="muted small">· ${esc(club(e.club_id)?.name)} · ${EVENT[e.type]}</span></span>${sancBadges(e.player_id)}</div>`).join('') || '<div class="muted small">Sin lesiones</div>';
@@ -302,7 +302,7 @@
   // ---------------- JUGADOR ----------------
   register('jugador', async (pid) => {
     let p = player(pid);
-    if (!p) { const { data } = await sb().from('players').select('*').eq('id', pid).single(); p = data; }
+    if (!p && !S.season.historical) { const { data } = await sb().from('players').select('*').eq('id', pid).single(); p = data; }
     if (!p) return ($('#app').innerHTML = '<div class="empty">Jugador inexistente.</div>');
     const evs = S.events.filter((e) => e.player_id === pid || e.assist_player_id === pid);
     const n = (t) => evs.filter((e) => e.type === t && e.player_id === pid).length;

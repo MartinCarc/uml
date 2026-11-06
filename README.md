@@ -75,6 +75,16 @@ Supabase → Authentication → Providers → Email → desactivá "Confirm emai
 
 ## Cómo se usa (flujo de una temporada)
 
+### Archivar clubes, iniciar otra etapa o eliminar una temporada
+
+Para habilitar estas funciones sobre una base existente, ejecutar primero **únicamente** `supabase/migrations/20261106_club_archive_and_new_game.sql` en Supabase → SQL Editor. Esta migración conserva los datos y no ejecuta ningún reinicio ni eliminación. No usar `reset_v1.sql` ni volver a ejecutar el esquema completo.
+
+- **Administrar clubes → Archivar**: oculta un club de las nuevas temporadas, conservando su historial. Solo se permite si no participa en temporadas pendientes. **Archivados → Restaurar** lo vuelve a habilitar.
+- **Eliminar club**: solo admite clubes sin datos asociados; con historial o jugadores, se debe archivar.
+- **Administrar clubes → Iniciar nueva etapa**: requiere escribir `NUEVA ETAPA`. Primero hay que cerrar o eliminar las temporadas pendientes. Archiva todos los clubes y jugadores, incluidos los agentes libres, y conserva las temporadas cerradas para consulta. Se pueden cargar clubes y planteles nuevos o restaurar fichas de clubes anteriores sin reactivar sus jugadores archivados. Los presupuestos de la nueva temporada empiezan desde cero y se acreditan al iniciarla según su configuración. El banco general conserva su saldo.
+- **Admin → Temporada → Eliminar temporada**: disponible en preparación o en curso. Requiere escribir `ELIMINAR ` seguido del nombre exacto. Borra definitivamente sus competencias, resultados, eventos, sanciones, ofertas, entrenamientos y movimientos. Conserva los clubes, los jugadores y las otras temporadas; no revierte transferencias ni cambios de edad o media ya aplicados. Recalcula el saldo del banco a partir del libro de movimientos restante. Las temporadas cerradas no se eliminan desde esta opción.
+- Al cerrar una temporada se conserva una copia de los clubes y jugadores antes del incremento de edad y devolución de cesiones. Para temporadas cerradas antes de instalar la migración, solo se puede conservar el estado disponible al instalarla: no se pueden reconstruir datos que la versión anterior ya sobrescribió.
+
 1. **Inicio → Administrar clubes** (también disponible en tu propio perfil de administrador): creá los clubes (nombre, estadio y capacidad real, color, escudo por URL), incluso antes de tener temporadas. Son permanentes, se reutilizan cada temporada. Dentro de una temporada, sigue disponible **Admin → Clubes y DTs**.
 2. **Inicio → + Nueva temporada**: elegís una liga o dos divisiones, marcás qué clubes van en cada una, configurás la copa y la economía. Si hay una temporada anterior cerrada, la web propone las divisiones con ascensos y descensos.
 3. **Admin → Clubes y DTs**: asignale DT a cada club. **Admin → Jugadores**: cargá planteles (uno por uno o pegando una lista `Nombre, POS, Edad, Media, Valor, Dorsal`).
