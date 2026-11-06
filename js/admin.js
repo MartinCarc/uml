@@ -7,20 +7,72 @@
   const guard = () => { if (!isAdmin()) { $('#app').innerHTML = '<div class="empty">Solo para administradores.</div>'; return false; } return true; };
   const q = async (p) => { const { data, error } = await p; if (error) throw error; return data; };
   const editingSeasonClubs = () => !!S.sid && !!S.season && location.hash.startsWith(`#/s/${S.sid}/admin`);
+  let showArchivedClubs = false;
+  A.showArchivedClubs = (value) => { showArchivedClubs = value; U.route(); };
 
   // Catálogo permanente, accesible incluso antes de crear la primera temporada.
   register('clubes', async () => {
     if (!guard()) return;
     const all = await q(sb().from('clubs').select('*').order('name'));
     S.clubs = all;
-    $('#app').innerHTML = pageHead('Administrar clubes', 'Los clubes son permanentes y se reutilizan en cada temporada.', '<a class="btn secondary" href="#/">Volver al inicio</a><a class="btn" href="#/nueva-temporada">+ Nueva temporada</a>') + clubCatalog(all, false);
+    $('#app').innerHTML = pageHead('Administrar clubes', 'Los clubes son permanentes y se reutilizan en cada temporada.', '<a class="btn secondary" href="#/">Volver al inicio</a><a class="btn" href="#/nueva-temporada">+ Nueva temporada</a>') +
+      `<div class="tabs"><button class="${!showArchivedClubs ? 'active' : ''}" onclick="A.showArchivedClubs(false)">Disponibles</button><button class="${showArchivedClubs ? 'active' : ''}" onclick="A.showArchivedClubs(true)">Archivados</button></div>` +
+      clubCatalog(all.filter((c) => !!c.archived === showArchivedClubs), false) +
+      '<div class="card"><h3>Nueva etapa</h3><p class="small muted">Archiva los clubes y jugadores actuales. Conserva las temporadas cerradas, sus planteles y movimientos. Después podés cargar otros clubes y planteles; cada nueva temporada comienza con presupuestos nuevos. Primero cerrá o eliminá todas las temporadas pendientes.</p><button class="danger" onclick="A.newGameModal()">Iniciar nueva etapa</button></div>';
   });
+
+  // Confirmaciones explícitas: no se ejecuta ninguna operación al abrir el cuadro.
+  let pendingManagement = null;
+  function managementModal(title, message, phrase, operation) {
+    pendingManagement = { phrase, operation };
+    modal(`<h2>${esc(title)}</h2><p>${esc(message)}</p><form onsubmit="A.confirmManagement(event)"><div class="field"><label>Escribí ${esc(phrase)} para confirmar</label><input name="confirmation" required autocomplete="off"></div><div class="row"><button type="submit" class="danger">Confirmar</button><button type="button" class="secondary" onclick="U.closeModal()">Cancelar</button></div></form>`);
+  }
+  A.confirmManagement = async (e) => {
+    e.preventDefault(); if (!guard() || !pendingManagement) return;
+    const { phrase, operation } = pendingManagement;
+    const value = U.formData(e.target).confirmation;
+    if (value !== phrase) return toast('La confirmación no coincide. No se hizo ningún cambio.', 'error');
+    const button = e.target.querySelector('[type=submit]'); button.disabled = true;
+    try { await operation(value); pendingManagement = null; closeModal(); }
+    catch (x) { err(x); button.disabled = false; }
+  };
+  A.manageClubModal = (id, action) => {
+    if (!guard()) return;
+    const c = club(id); if (!c) return;
+    const label = { archive: 'Archivar', restore: 'Restaurar', delete: 'Eliminar' }[action];
+    if (!label) return;
+    const message = action === 'delete' ? 'Solo se puede eliminar un club sin datos asociados. Esta acción es definitiva. Si tiene historial, usá Archivar.' : action === 'archive' ? 'El club dejará de estar disponible para nuevas temporadas. Su historial se conserva. No puede participar en temporadas pendientes.' : 'El club volverá a estar disponible para nuevas temporadas. Los jugadores de una etapa anterior no se reactivan: podés cargar un plantel nuevo.';
+    managementModal(`${label} ${c.name}`, message, `${label.toUpperCase()} ${c.name}`, async () => {
+      await rpc('manage_club', { p_club: id, p_action: action });
+      toast('Club actualizado', 'ok'); await U.route();
+    });
+  };
+  function clearSeasonContext() {
+    Object.assign(S, { sid: null, season: null, myClub: null, competitions: [], seasonTeams: [], compTeams: [], players: [], matches: [], events: [], sanctions: [], offers: [], queue: [], seasons: [] });
+    localStorage.removeItem('uml_sid');
+  }
+  A.newGameModal = () => {
+    if (!guard()) return;
+    managementModal('Iniciar nueva etapa', 'Se archivarán los clubes y jugadores actuales, incluidos los agentes libres. No se borran temporadas cerradas ni sus resultados, planteles y presupuestos. La nueva etapa tendrá clubes y planteles por cargar. El banco general conserva su saldo.', 'NUEVA ETAPA', async (value) => {
+      await rpc('start_new_game', { p_confirmation: value });
+      clearSeasonContext(); showArchivedClubs = false;
+      toast('Nueva etapa lista. Podés cargar los clubes.', 'ok'); await U.route();
+    });
+  };
+  A.deleteSeasonModal = () => {
+    if (!guard() || !S.season || S.season.status === 'closed' || S.season.historical) return;
+    const id = S.sid, name = S.season.name;
+    managementModal('Eliminar temporada', `Se eliminará definitivamente ${name}: competencias, fixture, resultados, eventos, sanciones, ofertas, entrenamientos y movimientos de esa temporada. Las otras temporadas y los clubes se conservan. No revierte transferencias ni cambios de edad o media ya aplicados a jugadores. El saldo del banco se recalcula sin los movimientos eliminados.`, `ELIMINAR ${name}`, async (value) => {
+      await rpc('delete_current_season', { p_season: id, p_confirmation: value });
+      clearSeasonContext(); location.hash = '#/'; await U.route(); toast('Temporada eliminada', 'ok');
+    });
+  };
 
   // ================= ASISTENTE DE NUEVA TEMPORADA =================
   register('nueva-temporada', async () => {
     if (!guard()) return;
-    const clubs = await q(sb().from('clubs').select('*').order('name'));
-    const prev = (await q(sb().from('seasons').select('*').order('created_at', { ascending: false }).limit(1)))[0];
+    const clubs = await q(sb().from('clubs').select('*').eq('archived', false).order('name'));
+    const prev = (await q(sb().from('seasons').select('*').eq('historical', false).order('created_at', { ascending: false }).limit(1)))[0];
     let prevTeams = []; let note = '';
     if (prev) {
       prevTeams = await q(sb().from('season_teams').select('*').eq('season_id', prev.id));
@@ -105,6 +157,7 @@
   A.adminTab = (k) => { tab = k; U.route(); };
   register('admin', async () => {
     if (!guard()) return;
+    if (S.season.historical) return ($('#app').innerHTML = pageHead('Administración', esc(S.season.name)) + '<div class="empty">Esta temporada pertenece a una etapa archivada. Su historial se conserva para consulta.</div>');
     await loadProfiles();
     const tabs = [['temporada', 'Temporada'], ['clubes', 'Clubes y DTs'], ['jugadores', 'Jugadores'], ['competencias', 'Competencias'], ['partidos', 'Partidos'], ['sanciones', 'Sanciones'], ['usuarios', 'Usuarios'], ['auditoria', 'Auditoría']];
     const body = await ({ temporada: tabSeason, clubes: tabClubs, jugadores: tabPlayers, competencias: tabComps, partidos: tabMatches, sanciones: tabSanctions, usuarios: tabUsers, auditoria: tabAudit }[tab])();
@@ -125,6 +178,7 @@
           <div class="hr"></div><p class="small muted">Cerrar la temporada: cobra la multa de fair play, devuelve las cesiones, suma un año a todos los jugadores y retira a los que llegan a ${c.retire_age}. No se puede deshacer.</p><button class="danger" onclick="A.closeSeason()">Cerrar temporada</button>` : ''}
         ${s.status === 'closed' ? `<p>Temporada cerrada el ${date(s.closed_at)}.</p><a class="btn" href="#/nueva-temporada">Crear la temporada siguiente</a>` : ''}
         ${retiringSoon()}
+        ${s.status !== 'closed' ? '<div class="hr"></div><p class="small muted">Eliminar esta temporada borra sus competencias, resultados y movimientos. No se puede deshacer.</p><button class="danger" onclick="A.deleteSeasonModal()">Eliminar temporada</button>' : ''}
       </div>
       <div class="card"><h3>Configuración</h3><form onsubmit="A.saveSeasonConfig(event)">
         <div class="fields"><div><label>Nombre</label><input name="name" value="${esc(s.name)}"></div></div>
@@ -150,7 +204,7 @@
 
   // ---- Clubes y DTs ----
   async function tabClubs() {
-    const all = await q(sb().from('clubs').select('*').order('name'));
+    const all = await q(sb().from('clubs').select('*').eq('archived', false).order('name'));
     return `<div class="card"><div class="row between"><h3 style="margin:0">Clubes en la temporada (${S.seasonTeams.length})</h3><button class="sm" onclick="A.clubModal()">+ Nuevo club</button></div>
       <div class="table-wrap mt"><table><thead><tr><th>Club</th><th>División</th><th>DT</th><th class="num">Presupuesto</th><th class="num">Plantel</th><th></th></tr></thead><tbody>
       ${S.seasonTeams.map((t) => { const c = club(t.club_id); return `<tr><td>${clubLabel(c.id)}</td><td>${S.season.mode === 'two' ? `<select style="width:auto" onchange="A.setTier('${t.id}', this.value)">${opt(1, 'Premier', t.tier)}${opt(2, 'Championship', t.tier)}</select>` : '—'}</td>
@@ -162,7 +216,7 @@
   function clubCatalog(all, seasonal) {
     const draft = seasonal && S.season.status === 'draft';
     return `<div class="card"><div class="row between"><h3 style="margin:0">Todos los clubes (${all.length})</h3>${!seasonal ? '<button class="sm" onclick="A.clubModal()">+ Nuevo club</button>' : ''}</div><p class="muted small">Los clubes son permanentes y se usan temporada tras temporada. ${draft ? 'Podés sumar clubes a esta temporada mientras esté en preparación.' : ''}</p>
-      <div class="table-wrap"><table><tbody>${all.map((c) => `<tr><td><span class="club">${crest(c)}${esc(c.name)}</span></td><td class="muted small">${esc(c.stadium_name || '')} · ${Number(c.stadium_capacity).toLocaleString('es-AR')}</td><td class="right">${seasonal && S.seasonTeams.some((t) => t.club_id === c.id) ? '<span class="badge green">En temporada</span>' : (draft ? `<button class="xs" onclick="A.addToSeason('${c.id}')">Sumar a la temporada</button>` : '')} <button class="xs secondary" onclick="A.clubModal('${c.id}')">Editar</button></td></tr>`).join('') || '<tr><td colspan="3" class="empty">Todavía no hay clubes. Creá el primero con + Nuevo club.</td></tr>'}</tbody></table></div></div>`;
+      <div class="table-wrap"><table><tbody>${all.map((c) => `<tr><td><span class="club">${crest(c)}${esc(c.name)}</span></td><td class="muted small">${esc(c.stadium_name || '')} · ${Number(c.stadium_capacity).toLocaleString('es-AR')}</td><td class="right">${seasonal && S.seasonTeams.some((t) => t.club_id === c.id) ? '<span class="badge green">En temporada</span>' : (draft ? `<button class="xs" onclick="A.addToSeason('${c.id}')">Sumar a la temporada</button>` : '')} ${!c.archived ? `<button class="xs secondary" onclick="A.clubModal('${c.id}')">Editar</button>` : ''} ${!seasonal ? (c.archived ? `<button class="xs secondary" onclick="A.manageClubModal('${c.id}','restore')">Restaurar</button>` : `<button class="xs secondary" onclick="A.manageClubModal('${c.id}','archive')">Archivar</button>`) + ` <button class="xs danger" onclick="A.manageClubModal('${c.id}','delete')">Eliminar</button>` : ''}</td></tr>`).join('') || `<tr><td colspan="3" class="empty">${!seasonal && showArchivedClubs ? 'No hay clubes archivados.' : 'Todavía no hay clubes. Creá el primero con + Nuevo club.'}</td></tr>`}</tbody></table></div></div>`;
   }
   A.clubModal = async (id) => {
     if (!guard()) return;

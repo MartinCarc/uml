@@ -105,7 +105,7 @@ window.U = (() => {
     S.sid = sid; S.season = season.data; S.competitions = comps.data; S.clubs = clubs.data; S.seasonTeams = steams.data; S.compTeams = cteams.data;
     const compIds = S.competitions.map((c) => c.id); const clubIds = S.seasonTeams.map((t) => t.club_id);
     const [players, matches, events, sancs, offers, queue] = await Promise.all([
-      sb.from('players').select('*').eq('retired', false).or(clubIds.length ? `club_id.is.null,club_id.in.(${clubIds.join(',')})` : 'club_id.is.null').order('name'),
+      sb.from('players').select('*').eq('archived', false).eq('retired', false).or(clubIds.length ? `club_id.is.null,club_id.in.(${clubIds.join(',')})` : 'club_id.is.null').order('name'),
       compIds.length ? sb.from('matches').select('*').in('competition_id', compIds).order('round').order('leg') : { data: [] },
       compIds.length ? sb.from('match_events').select('*, matches!inner(competition_id)').in('matches.competition_id', compIds).order('seq') : { data: [] },
       sb.from('active_sanctions').select('*').eq('season_id', sid),
@@ -114,6 +114,12 @@ window.U = (() => {
     ]);
     for (const r of [players, matches, events, sancs, offers, queue]) if (r.error) throw r.error;
     S.players = players.data; S.matches = matches.data; S.events = events.data; S.sanctions = sancs.data || []; S.offers = offers.data; S.queue = queue.data;
+    if (S.season.status === 'closed') {
+      const { data: snapshot, error } = await sb.from('season_snapshots').select('*').eq('season_id', sid).maybeSingle();
+      if (error) throw error;
+      if (S.season.historical && !snapshot) throw new Error('Falta la copia histórica de esta temporada. Revisá la migración antes de continuar.');
+      if (snapshot) { S.clubs = snapshot.clubs; S.players = snapshot.players; }
+    }
     S.myClub = S.user ? (S.seasonTeams.find((t) => t.manager_id === S.user.id)?.club_id || null) : null;
     if (!S.profiles.length) await loadProfiles().catch(() => {});
     localStorage.setItem('uml_sid', sid);
