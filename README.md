@@ -75,7 +75,7 @@ Supabase → Authentication → Providers → Email → desactivá "Confirm emai
 
 ## Cómo se usa (flujo de una temporada)
 
-1. **Admin → Clubes y DTs**: creá los clubes (nombre, estadio y capacidad real, color, escudo por URL). Son permanentes, se reutilizan cada temporada.
+1. **Inicio → Administrar clubes** (también disponible en tu propio perfil de administrador): creá los clubes (nombre, estadio y capacidad real, color, escudo por URL), incluso antes de tener temporadas. Son permanentes, se reutilizan cada temporada. Dentro de una temporada, sigue disponible **Admin → Clubes y DTs**.
 2. **Inicio → + Nueva temporada**: elegís una liga o dos divisiones, marcás qué clubes van en cada una, configurás la copa y la economía. Si hay una temporada anterior cerrada, la web propone las divisiones con ascensos y descensos.
 3. **Admin → Clubes y DTs**: asignale DT a cada club. **Admin → Jugadores**: cargá planteles (uno por uno o pegando una lista `Nombre, POS, Edad, Media, Valor, Dorsal`).
 4. **Admin → Temporada → Iniciar temporada**: acredita presupuesto y TV. **Admin → Competencias**: generá el fixture de cada liga y sorteá la primera ronda de la copa.

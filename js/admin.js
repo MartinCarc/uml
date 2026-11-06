@@ -6,6 +6,15 @@
   const sb = () => client();
   const guard = () => { if (!isAdmin()) { $('#app').innerHTML = '<div class="empty">Solo para administradores.</div>'; return false; } return true; };
   const q = async (p) => { const { data, error } = await p; if (error) throw error; return data; };
+  const editingSeasonClubs = () => !!S.sid && !!S.season && location.hash.startsWith(`#/s/${S.sid}/admin`);
+
+  // Catálogo permanente, accesible incluso antes de crear la primera temporada.
+  register('clubes', async () => {
+    if (!guard()) return;
+    const all = await q(sb().from('clubs').select('*').order('name'));
+    S.clubs = all;
+    $('#app').innerHTML = pageHead('Administrar clubes', 'Los clubes son permanentes y se reutilizan en cada temporada.', '<a class="btn secondary" href="#/">Volver al inicio</a><a class="btn" href="#/nueva-temporada">+ Nueva temporada</a>') + clubCatalog(all, false);
+  });
 
   // ================= ASISTENTE DE NUEVA TEMPORADA =================
   register('nueva-temporada', async () => {
@@ -44,7 +53,7 @@
         <div class="fields"><div><label>Nombre de la liga / primera división</label><input name="league1_name" value="UML Premier" required></div><div><label>Formato</label><select name="league1_rounds"><option value="double">Ida y vuelta</option><option value="single">Una rueda</option></select></div>
           <div><label>Puntos por victoria</label><input name="points_win" type="number" value="3"></div><div><label>Puntos por empate</label><input name="points_draw" type="number" value="1"></div></div>
         <div class="kicker mb">Equipos de la primera división <span class="muted" id="cnt1"></span></div>
-        <div class="check-list mb">${clubs.map((c) => clubCheck(c, 1)).join('') || '<span class="muted">Primero creá clubes desde Admin → Clubes.</span>'}</div>
+        <div class="check-list mb">${clubs.map((c) => clubCheck(c, 1)).join('') || '<span class="muted">Primero creá clubes desde <a href="#/clubes">Administrar clubes</a>.</span>'}</div>
         <div id="wiz-two" style="display:none">
           <div class="hr"></div>
           <div class="fields"><div><label>Nombre de la segunda división</label><input name="league2_name" value="UML Championship"></div><div><label>Formato</label><select name="league2_rounds"><option value="double">Ida y vuelta</option><option value="single">Una rueda</option></select></div>
@@ -142,32 +151,36 @@
   // ---- Clubes y DTs ----
   async function tabClubs() {
     const all = await q(sb().from('clubs').select('*').order('name'));
-    const inSeason = (id) => S.seasonTeams.find((t) => t.club_id === id);
     return `<div class="card"><div class="row between"><h3 style="margin:0">Clubes en la temporada (${S.seasonTeams.length})</h3><button class="sm" onclick="A.clubModal()">+ Nuevo club</button></div>
       <div class="table-wrap mt"><table><thead><tr><th>Club</th><th>División</th><th>DT</th><th class="num">Presupuesto</th><th class="num">Plantel</th><th></th></tr></thead><tbody>
       ${S.seasonTeams.map((t) => { const c = club(t.club_id); return `<tr><td>${clubLabel(c.id)}</td><td>${S.season.mode === 'two' ? `<select style="width:auto" onchange="A.setTier('${t.id}', this.value)">${opt(1, 'Premier', t.tier)}${opt(2, 'Championship', t.tier)}</select>` : '—'}</td>
         <td><select style="width:auto;max-width:170px" onchange="A.assignManager('${t.id}', this.value)"><option value="">— Sin DT —</option>${S.profiles.map((p) => opt(p.id, p.username, t.manager_id)).join('')}</select></td>
         <td class="num money plain">${fmtM(t.budget)}${Number(t.reserved) ? `<div class="tiny muted">res. ${fmtM(t.reserved)}</div>` : ''}</td><td class="num">${squad(c.id).length}</td>
         <td class="right"><button class="xs secondary" onclick="A.clubModal('${c.id}')">Editar</button> <button class="xs secondary" onclick="A.budgetModal('${c.id}')">$ Ajustar</button> ${S.season.status === 'draft' ? `<button class="xs danger" onclick="A.removeFromSeason('${t.id}')">Quitar</button>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="6" class="empty">Sin clubes en la temporada.</td></tr>'}</tbody></table></div></div>
-      <div class="card"><h3>Todos los clubes (${all.length})</h3><p class="muted small">Los clubes son permanentes y se usan temporada tras temporada. ${S.season.status === 'draft' ? 'Podés sumar clubes a esta temporada mientras esté en preparación.' : ''}</p>
-      <div class="table-wrap"><table><tbody>${all.map((c) => `<tr><td><span class="club">${crest(c)}${esc(c.name)}</span></td><td class="muted small">${esc(c.stadium_name || '')} · ${Number(c.stadium_capacity).toLocaleString('es-AR')}</td><td class="right">${inSeason(c.id) ? '<span class="badge green">En temporada</span>' : (S.season.status === 'draft' ? `<button class="xs" onclick="A.addToSeason('${c.id}')">Sumar a la temporada</button>` : '')} <button class="xs secondary" onclick="A.clubModal('${c.id}')">Editar</button></td></tr>`).join('')}</tbody></table></div></div>`;
+      ${clubCatalog(all, true)}`;
+  }
+  function clubCatalog(all, seasonal) {
+    const draft = seasonal && S.season.status === 'draft';
+    return `<div class="card"><div class="row between"><h3 style="margin:0">Todos los clubes (${all.length})</h3>${!seasonal ? '<button class="sm" onclick="A.clubModal()">+ Nuevo club</button>' : ''}</div><p class="muted small">Los clubes son permanentes y se usan temporada tras temporada. ${draft ? 'Podés sumar clubes a esta temporada mientras esté en preparación.' : ''}</p>
+      <div class="table-wrap"><table><tbody>${all.map((c) => `<tr><td><span class="club">${crest(c)}${esc(c.name)}</span></td><td class="muted small">${esc(c.stadium_name || '')} · ${Number(c.stadium_capacity).toLocaleString('es-AR')}</td><td class="right">${seasonal && S.seasonTeams.some((t) => t.club_id === c.id) ? '<span class="badge green">En temporada</span>' : (draft ? `<button class="xs" onclick="A.addToSeason('${c.id}')">Sumar a la temporada</button>` : '')} <button class="xs secondary" onclick="A.clubModal('${c.id}')">Editar</button></td></tr>`).join('') || '<tr><td colspan="3" class="empty">Todavía no hay clubes. Creá el primero con + Nuevo club.</td></tr>'}</tbody></table></div></div>`;
   }
   A.clubModal = async (id) => {
+    if (!guard()) return;
     const c = id ? (club(id) || (await q(sb().from('clubs').select('*').eq('id', id).single()))) : {};
     modal(`<h2>${id ? 'Editar club' : 'Nuevo club'}</h2><form onsubmit="A.saveClub(event,'${id || ''}')">
       <div class="fields"><div><label>Nombre</label><input name="name" value="${esc(c.name || '')}" required></div><div><label>Abreviatura</label><input name="short_name" maxlength="4" value="${esc(c.short_name || '')}"></div><div><label>Color</label><input name="color" type="color" value="${esc(c.color || '#1F5FC4')}"></div></div>
       <div class="fields"><div><label>Estadio</label><input name="stadium_name" value="${esc(c.stadium_name || '')}"></div><div><label>Capacidad real</label><input name="stadium_capacity" type="number" min="1000" value="${c.stadium_capacity || 40000}" required></div></div>
       <div class="field"><label>Escudo (URL de imagen PNG)</label><input name="crest_url" type="url" value="${esc(c.crest_url || '')}" placeholder="https://…"><div class="help">La subida directa de escudos llega en la etapa de imágenes; por ahora pegá un link.</div></div>
-      ${!id && S.season.status === 'draft' ? `<label class="check mb"><input type="checkbox" name="add" checked> Sumar a esta temporada ${S.season.mode === 'two' ? '<select name="tier" style="width:auto;margin-left:8px"><option value="1">Premier</option><option value="2">Championship</option></select>' : ''}</label>` : ''}
+      ${!id && editingSeasonClubs() && S.season.status === 'draft' ? `<label class="check mb"><input type="checkbox" name="add" checked> Sumar a esta temporada ${S.season.mode === 'two' ? '<select name="tier" style="width:auto;margin-left:8px"><option value="1">Premier</option><option value="2">Championship</option></select>' : ''}</label>` : ''}
       <div class="row"><button type="submit">Guardar</button><button type="button" class="secondary" onclick="U.closeModal()">Cancelar</button></div></form>`);
   };
   A.saveClub = async (e, id) => {
-    e.preventDefault(); const f = U.formData(e.target);
+    e.preventDefault(); if (!guard()) return; const f = U.formData(e.target);
     const rec = { name: f.name.trim(), short_name: f.short_name || null, color: f.color, stadium_name: f.stadium_name || null, stadium_capacity: +f.stadium_capacity, crest_url: f.crest_url || null };
     try {
       if (id) await q(sb().from('clubs').update(rec).eq('id', id));
-      else { const c = await q(sb().from('clubs').insert(rec).select().single()); if (f.add) await A.addToSeason(c.id, +(f.tier || 1), true); }
-      closeModal(); toast('Club guardado', 'ok'); refresh();
+      else { const c = await q(sb().from('clubs').insert(rec).select().single()); if (f.add && editingSeasonClubs() && S.season.status === 'draft') await A.addToSeason(c.id, +(f.tier || 1), true); }
+      closeModal(); toast('Club guardado', 'ok'); await (editingSeasonClubs() ? refresh() : U.route());
     } catch (x) { err(x); }
   };
   A.addToSeason = async (clubId, tier = 1, silent = false) => {

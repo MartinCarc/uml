@@ -142,6 +142,7 @@ window.U = (() => {
     try {
       if (parts[0] === 'login') { renderNav(null); return routes.login(); }
       if (parts[0] === 'perfil') { renderNav(null); return routes.perfil(parts[1]); }
+      if (parts[0] === 'clubes') { renderNav(null); return await routes.clubes(); }
       if (parts[0] === 'nueva-temporada') { renderNav(null); return routes['nueva-temporada'](); }
       if (parts[0] === 's' && parts[1]) {
         const sid = parts[1], page = parts[2] || 'inicio';

@@ -41,7 +41,7 @@
         <span class="avatar" style="width:84px;height:84px;font-size:32px;border:3px solid #fff">${p.avatar_url ? `<img src="${esc(p.avatar_url)}">` : esc(p.username.slice(0, 1).toUpperCase())}</span>
         <div><h1 style="margin:0">${esc(p.username)}</h1><div class="muted">${esc([p.first_name, p.last_name].filter(Boolean).join(' '))}</div>
         <div class="mt">${p.is_admin ? '<span class="badge white">admin</span> ' : ''}${p.is_simulator ? '<span class="badge white">simulador</span>' : ''}</div></div>
-        ${mine ? `<div style="margin-left:auto"><button class="secondary" onclick="A.editProfile()">Editar perfil</button></div>` : ''}
+        ${mine ? `<div class="row" style="margin-left:auto">${isAdmin() ? '<a class="btn secondary" href="#/clubes">Administrar clubes</a>' : ''}<button class="secondary" onclick="A.editProfile()">Editar perfil</button></div>` : ''}
       </div></div>
       <div class="grid c2">
         <div class="card"><h3>Equipos dirigidos</h3>${teams?.length ? teams.map((t) => `<div class="list-item"><span class="club">${crest(t.clubs)}${esc(t.clubs?.name)}</span><span class="muted small">${esc(t.seasons?.name)} ${statusBadge(t.seasons?.status)}</span></div>`).join('') : '<div class="empty">Todavía no dirigió ningún equipo.</div>'}</div>
@@ -59,7 +59,7 @@
       <div class="kicker" style="color:#8FB0EE">Comunidad de managers · PES</div>
       <h1>${esc(U.CFG.LEAGUE_FULL_NAME || league.full_name || 'UEFA Manager League')}</h1>
       <p>La comunidad de fútbol virtual donde cada participante dirige su club, arma su plantel y define sus tácticas para competir en ligas y copas con partidos simulados en PES. Un espacio para vivir la pasión de ser DT, compartir con otros fanáticos y hacer historia con tu equipo.</p>
-      <div class="row">${!S.user ? '<a class="btn" style="background:#fff;color:#0A2A66" href="#/login">Ingresar o registrarme</a>' : ''}${isAdmin() ? '<a class="btn" href="#/nueva-temporada">+ Nueva temporada</a>' : ''}</div></div></div>`;
+      <div class="row">${!S.user ? '<a class="btn" style="background:#fff;color:#0A2A66" href="#/login">Ingresar o registrarme</a>' : ''}${isAdmin() ? '<a class="btn" href="#/clubes">Administrar clubes</a><a class="btn" href="#/nueva-temporada">+ Nueva temporada</a>' : ''}</div></div></div>`;
     if (!seasons.length) { app.innerHTML = hero + '<div class="empty">Todavía no hay temporadas creadas.</div>'; return; }
     const active = seasons.find((s) => s.status === 'active') || seasons[0];
     if (S.sid !== active.id) await U.loadSeason(active.id);
