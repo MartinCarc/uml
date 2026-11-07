@@ -23,6 +23,7 @@ await result();await result();near(await budget(),2810700);near(await total(),14
 const migration=readFileSync(new URL('supabase/migrations/20261107_ticket_income_fix.sql',root),'utf8');
 await db.exec(migration);near(await budget(),1405350);
 for(let i=0;i<3;i++){await result();near(await budget(),1405350);near(await budget(),await total());}
+await db.exec(readFileSync(new URL('supabase/migrations/20261107_season_balance_continuity.sql',root),'utf8'));
 // Start adds each division's budget and TV once and preserves existing tickets.
 await db.query('select start_season($1)',[sid]);near(await budget(),261405350);near(await budget(away),190000000);
 await assert.rejects(()=>db.query('select start_season($1)',[sid]),/ya fue iniciada/);

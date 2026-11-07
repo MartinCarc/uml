@@ -81,14 +81,14 @@ Para habilitar estas funciones sobre una base existente, ejecutar primero **úni
 
 - **Administrar clubes → Archivar**: oculta un club de las nuevas temporadas, conservando su historial. Solo se permite si no participa en temporadas pendientes. **Archivados → Restaurar** lo vuelve a habilitar.
 - **Eliminar club**: solo admite clubes sin datos asociados; con historial o jugadores, se debe archivar.
-- **Administrar clubes → Iniciar nueva etapa**: requiere escribir `NUEVA ETAPA`. Primero hay que cerrar o eliminar las temporadas pendientes. Archiva todos los clubes y jugadores, incluidos los agentes libres, y conserva las temporadas cerradas para consulta. Se pueden cargar clubes y planteles nuevos o restaurar fichas de clubes anteriores sin reactivar sus jugadores archivados. Los presupuestos de la nueva temporada empiezan desde cero y se acreditan al iniciarla según su configuración. El banco general conserva su saldo.
+- **Administrar clubes → Iniciar nueva etapa**: requiere escribir `NUEVA ETAPA`. Primero hay que cerrar o eliminar las temporadas pendientes. Archiva todos los clubes y jugadores, incluidos los agentes libres, y conserva las temporadas cerradas para consulta. Se pueden cargar clubes y planteles nuevos o restaurar fichas de clubes anteriores sin reactivar sus jugadores archivados. La primera temporada de la nueva etapa recibe el presupuesto inicial; las siguientes conservan el saldo final sin repetir ese pago. El banco general conserva su saldo.
 - **Admin → Temporada → Eliminar temporada**: disponible en preparación o en curso. Requiere escribir `ELIMINAR ` seguido del nombre exacto. Borra definitivamente sus competencias, resultados, eventos, sanciones, ofertas, entrenamientos y movimientos. Conserva los clubes, los jugadores y las otras temporadas; no revierte transferencias ni cambios de edad o media ya aplicados. Recalcula el saldo del banco a partir del libro de movimientos restante. Las temporadas cerradas no se eliminan desde esta opción.
 - Al cerrar una temporada se conserva una copia de los clubes y jugadores antes del incremento de edad y devolución de cesiones. Para temporadas cerradas antes de instalar la migración, solo se puede conservar el estado disponible al instalarla: no se pueden reconstruir datos que la versión anterior ya sobrescribió.
 
 1. **Inicio → Administrar clubes** (también disponible en tu propio perfil de administrador): creá los clubes (nombre, estadio y capacidad real, color, escudo por URL), incluso antes de tener temporadas. Son permanentes, se reutilizan cada temporada. Dentro de una temporada, sigue disponible **Admin → Clubes y DTs**.
 2. **Inicio → + Nueva temporada**: elegís una liga o dos divisiones, marcás qué clubes van en cada una, configurás la copa y la economía. Si hay una temporada anterior cerrada, la web propone las divisiones con ascensos y descensos.
 3. **Admin → Clubes y DTs**: asignale DT a cada club. **Admin → Jugadores**: cargá planteles (uno por uno o pegando una lista `Nombre, POS, Edad, Media, Valor, Dorsal`).
-4. **Admin → Temporada → Iniciar temporada**: acredita presupuesto y TV. **Admin → Competencias**: generá el fixture de cada liga y sorteá la primera ronda de la copa.
+4. **Admin → Temporada → Iniciar temporada**: acredita el presupuesto inicial solo en la primera temporada de la etapa; en las siguientes conserva el saldo final del club. Acredita TV en cada temporada según su división actual. **Admin → Competencias**: generá el fixture de cada liga y sorteá la primera ronda de la copa.
 5. **Admin → Usuarios**: marcá quiénes son **simuladores**. **Admin → Partidos**: asignales partidos (uno por uno o toda la fecha). Cada simulador ve "Mis partidos" y carga resultado, goles, asistencias, tarjetas, lesiones, MVP, atajada y link a Discord. Las entradas se acreditan al cargar el resultado. "Cerrar" un partido impide que el simulador lo siga editando.
 6. **Admin → Temporada → Cerrar/Abrir mercado**: con el mercado cerrado, los DTs igual negocian y acuerdan; todo se ejecuta cuando lo abrís (mitad de temporada, inicio de la siguiente).
 7. Los DTs usan **Mi equipo** (precio, dorsal, transferible, cedible, liberar, gimnasio, libro de caja) y **Mercado** (ofertas, contraofertas, cesiones, agentes libres). Para ofertar por un jugador que no está en lista, entran al equipo rival y tocan "Ofertar".
@@ -152,6 +152,18 @@ En la columna junto al campo aparece **Banco de suplentes** (debajo del campo en
 
 Aplicar `supabase/migrations/20261107_ticket_income_fix.sql` una vez en SQL Editor. Corrige el cálculo al editar resultados y ajusta los saldos de equipos con ingresos por entradas de temporadas abiertas a la suma de sus movimientos registrados (incluye presupuestos, TV, transferencias y ajustes). Conserva los movimientos, los partidos y los jugadores; excluye temporadas cerradas e históricas. No inicia la temporada ni acredita presupuesto/TV pendientes.
 
-Crear una temporada la deja **en preparación**. Para acreditar presupuesto inicial y TV, entrar en **Admin → Temporada → Iniciar temporada**. En la configuración actual son 200 M + 60 M para Premier y 150 M + 40 M para Championship. No recrear la temporada ni repetir créditos mediante ajustes manuales.
+Crear una temporada la deja **en preparación**. Para acreditar los ingresos de inicio, entrar en **Admin → Temporada → Iniciar temporada**. En la primera temporada son 200 M + 60 M para Premier y 150 M + 40 M para Championship, según la configuración. En las siguientes se conserva el saldo anterior y se suma la TV, sin repetir el presupuesto inicial. No recrear la temporada ni repetir créditos mediante ajustes manuales.
 
 El plantel muestra por separado **Valor** (la referencia cargada por el administrador) y **Precio pedido** (lo que fija el DT). Un precio pedido vacío no significa que se haya perdido el valor del jugador.
+
+
+### Continuidad del saldo entre temporadas
+
+Aplicar `supabase/migrations/20261107_season_balance_continuity.sql` después de las migraciones anteriores. Actualiza el inicio de futuras temporadas y no cambia créditos ni saldos ya registrados.
+
+- Solo la **temporada 1 de la etapa** recibe el presupuesto inicial. Los clubes incorporados en temporadas posteriores no reciben ese pago.
+- Cada equipo conserva su último saldo final de la misma etapa, incluidos cero y deudas. Se registra en el nuevo libro como **Saldo de la temporada anterior**; el libro anterior se conserva intacto. Si el club no participó en la temporada inmediatamente anterior, se toma su última participación cerrada.
+- La TV se acredita al comenzar **cada temporada**, según la división actual del club. Los movimientos ya registrados durante la preparación se conservan.
+- Primero se debe cerrar la temporada en curso. El inicio queda protegido contra la repetición del pago.
+- **Sponsors:** la regla confirmada es pagar al comienzo de cada temporada. La gestión y los pagos automáticos de sponsors siguen pendientes; esta actualización no inventa contratos ni importes.
+- **Iniciar nueva etapa** mantiene la separación de historiales y permite un nuevo presupuesto inicial en la primera temporada de esa etapa.

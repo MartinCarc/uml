@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node finance.mjs"
+    "test": "node finance.mjs && node season-continuity.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.15"
