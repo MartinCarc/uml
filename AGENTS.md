@@ -14,3 +14,5 @@
 - Los reinicios de juego deben permitir clubes, planteles y presupuestos nuevos conservando el historial de etapas anteriores. Archivar conserva datos; eliminar definitivamente una temporada en preparación o en curso requiere una confirmación explícita en la interfaz. No ejecutar estas acciones sobre datos reales como parte de las pruebas.
 
 - Economía confirmada: el presupuesto inicial se entrega solo en la temporada 1 de cada etapa. El saldo final (también negativo o cero) se conserva para la siguiente temporada. La TV y los sponsors se pagan al comenzar cada temporada; sponsors sigue pendiente de implementación, no inventar importes ni pagos. Un club que ingresa después de la temporada 1 no recibe otro presupuesto inicial.
+
+- Los jugadores tienen un único Valor: se define al crearlos y luego el DT de su equipo o el administrador pueden modificarlo. No mostrar un Precio pedido separado. Mercado, ficha y valor del plantel deben usar el mismo dato.

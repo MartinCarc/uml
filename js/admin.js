@@ -264,7 +264,7 @@
       <div class="card"><h3>Agregar jugador</h3><form onsubmit="A.addPlayer(event)">
         <div class="field"><label>Nombre</label><input name="name" required></div>
         <div class="fields"><div><label>Posición</label><select name="position">${Object.entries(POS).map(([k, v]) => opt(k, `${k} · ${v}`, 'MC')).join('')}</select></div><div><label>Edad</label><input name="age" type="number" min="15" max="45" value="25" required></div><div><label>Media</label><input name="overall" type="number" min="1" max="99"></div><div><label>Dorsal</label><input name="number" type="number" min="1" max="99"></div></div>
-        <div class="fields"><div><label>Valor de referencia</label><input name="value" type="number" min="0" value="1000000"></div><div><label>Equipo</label><select name="club_id">${teamOpts('')}</select></div></div>
+        <div class="fields"><div><label>Valor</label><input name="value" type="number" min="0" value="1000000"></div><div><label>Equipo</label><select name="club_id">${teamOpts('')}</select></div></div>
         <button type="submit">Agregar</button></form></div>
       <div class="card"><h3>Importar varios</h3><p class="muted small">Un jugador por línea: <code>Nombre, POS, Edad, Media, Valor, Dorsal</code>. POS: ${Object.keys(POS).join(' ')}. Ej: <code>Lautaro Martínez, DC, 29, 88, 60000000, 10</code></p>
         <form onsubmit="A.importPlayers(event)"><div class="field"><textarea name="text" rows="7"></textarea></div><div class="field"><label>Asignar a</label><select name="club_id">${teamOpts('')}</select></div><button type="submit">Importar</button></form></div></div>
@@ -286,11 +286,11 @@
     modal(`<h2>Editar jugador</h2><form onsubmit="A.savePlayer(event,'${id}')">
       <div class="field"><label>Nombre</label><input name="name" value="${esc(p.name)}" required></div>
       <div class="fields"><div><label>Posición</label><select name="position">${Object.entries(POS).map(([k, v]) => opt(k, `${k} · ${v}`, p.position)).join('')}</select></div><div><label>Edad</label><input name="age" type="number" value="${p.age}"></div><div><label>Media</label><input name="overall" type="number" value="${p.overall ?? ''}"></div><div><label>Dorsal</label><input name="number" type="number" value="${p.number ?? ''}"></div></div>
-      <div class="fields"><div><label>Valor de referencia</label><input name="value" type="number" value="${p.value}"></div><div><label>Precio pedido</label><input name="price" type="number" value="${p.price ?? ''}"></div></div>
+      <div class="field"><label>Valor</label><input name="value" type="number" min="0" value="${p.value}" required></div>
       <div class="field"><label>Foto (URL)</label><input name="photo_url" type="url" value="${esc(p.photo_url || '')}"></div>
       <div class="row"><button type="submit">Guardar</button><button type="button" class="secondary" onclick="U.closeModal()">Cancelar</button></div></form>`);
   };
-  A.savePlayer = async (e, id) => { e.preventDefault(); const f = U.formData(e.target); try { await q(sb().from('players').update({ name: f.name, position: f.position, age: +f.age, overall: f.overall ? +f.overall : null, number: f.number ? +f.number : null, value: +f.value || 0, price: f.price ? +f.price : null, photo_url: f.photo_url || null }).eq('id', id)); closeModal(); refresh(); } catch (x) { err(x); } };
+  A.savePlayer = async (e, id) => { e.preventDefault(); const f = U.formData(e.target); try { await q(sb().from('players').update({ name: f.name, position: f.position, age: +f.age, overall: f.overall ? +f.overall : null, number: f.number ? +f.number : null, value: +f.value || 0, photo_url: f.photo_url || null }).eq('id', id)); closeModal(); refresh(); } catch (x) { err(x); } };
   A.deletePlayer = (id) => U.confirmDo('¿Eliminar al jugador definitivamente?', async () => { await q(sb().from('players').delete().eq('id', id)); refresh(); });
 
   // ---- Competencias ----

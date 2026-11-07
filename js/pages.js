@@ -277,7 +277,7 @@
   register('equipo', async (cid) => {
     const c = club(cid); if (!c) return ($('#app').innerHTML = '<div class="empty">Equipo inexistente.</div>');
     const t = st(cid); const mine = S.myClub === cid; const canOffer = S.myClub && !mine && S.season.status === 'active';
-    const value = squad(cid).reduce((a, p) => a + Number(p.price ?? p.value ?? 0), 0);
+    const value = squad(cid).reduce((a, p) => a + Number(p.value ?? 0), 0);
     const league = S.competitions.find((x) => x.kind === 'league' && compClubs(x.id).includes(cid)); const pos = league ? standings(league.id).find((r) => r.club_id === cid)?.pos : null;
     const { data: tx } = await sb().from('transactions').select('*').eq('club_id', cid).eq('season_id', S.sid).order('created_at', { ascending: false }).limit(100);
     let bal = Number(t?.budget || 0);
@@ -296,8 +296,8 @@
   function squadTable(cid, opts = {}) {
     const ps = squad(cid); if (!ps.length) return '<div class="empty">Plantel vacío.</div>';
     const goals = (pid) => S.events.filter((e) => e.player_id === pid && e.type === 'goal').length;
-    return `<div class="table-wrap"><table><thead><tr><th>#</th><th>Pos</th><th>Jugador</th><th class="num">Edad</th><th class="num">Media</th><th class="num">Goles</th><th class="num">Valor</th><th class="num">Precio pedido</th><th>Estado</th>${opts.actions ? '<th></th>' : ''}</tr></thead>
-      <tbody>${ps.map((p) => `<tr><td class="muted">${p.number ?? ''}</td><td><span class="badge" title="${POS[p.position]}">${p.position}</span></td><td><a href="#/s/${S.sid}/jugador/${p.id}" style="color:inherit"><b>${esc(p.name)}</b></a>${p.loan_from_club_id ? ` <span class="badge amber" title="Cedido por ${esc(club(p.loan_from_club_id)?.name)}">Cedido</span>` : ''}</td><td class="num">${p.age}</td><td class="num">${p.overall ?? '-'}</td><td class="num">${goals(p.id)}</td><td class="num">${p.value != null ? fmtM(p.value) : '<span class="muted">—</span>'}</td><td class="num">${p.price != null ? fmtM(p.price) : '<span class="muted">—</span>'}</td><td>${p.transfer_listed ? '<span class="badge green">Transferible</span> ' : ''}${p.loan_listed ? '<span class="badge amber">Cedible</span> ' : ''}${sancBadges(p.id)}</td>${opts.actions ? `<td class="right">${opts.actions(p)}</td>` : ''}</tr>`).join('')}</tbody></table></div>`;
+    return `<div class="table-wrap"><table><thead><tr><th>#</th><th>Pos</th><th>Jugador</th><th class="num">Edad</th><th class="num">Media</th><th class="num">Goles</th><th class="num">Valor</th><th>Estado</th>${opts.actions ? '<th></th>' : ''}</tr></thead>
+      <tbody>${ps.map((p) => `<tr><td class="muted">${p.number ?? ''}</td><td><span class="badge" title="${POS[p.position]}">${p.position}</span></td><td><a href="#/s/${S.sid}/jugador/${p.id}" style="color:inherit"><b>${esc(p.name)}</b></a>${p.loan_from_club_id ? ` <span class="badge amber" title="Cedido por ${esc(club(p.loan_from_club_id)?.name)}">Cedido</span>` : ''}</td><td class="num">${p.age}</td><td class="num">${p.overall ?? '-'}</td><td class="num">${goals(p.id)}</td><td class="num">${p.value != null ? fmtM(p.value) : '<span class="muted">—</span>'}</td><td>${p.transfer_listed ? '<span class="badge green">Transferible</span> ' : ''}${p.loan_listed ? '<span class="badge amber">Cedible</span> ' : ''}${sancBadges(p.id)}</td>${opts.actions ? `<td class="right">${opts.actions(p)}</td>` : ''}</tr>`).join('')}</tbody></table></div>`;
   }
   U.squadTable = squadTable;
 
@@ -318,7 +318,7 @@
         <div class="grid c4" style="margin-left:auto;min-width:300px"><div class="stat"><div class="v">${p.overall ?? '-'}</div><div class="l">Media</div></div><div class="stat"><div class="v">${n('goal')}</div><div class="l">Goles</div></div><div class="stat"><div class="v">${assists}</div><div class="l">Asistencias</div></div><div class="stat"><div class="v">${p.position === 'ARQ' ? saves : mvp}</div><div class="l">${p.position === 'ARQ' ? 'Atajadas' : 'MVP'}</div></div></div></div></div>
       <div class="grid c2">
         <div class="card"><h3>Temporada</h3><div class="grid c4"><div class="stat"><div class="v">${n('yellow') + n('second_yellow')}</div><div class="l">Amarillas</div></div><div class="stat"><div class="v">${n('red') + n('second_yellow')}</div><div class="l">Rojas</div></div><div class="stat"><div class="v">${n('injury_minor') + n('injury_major')}</div><div class="l">Lesiones</div></div><div class="stat"><div class="v">${trainings.length}</div><div class="l">Entrenamientos</div></div></div>
-          <div class="mt small muted">Precio pedido: <b>${p.price ? fmtM(p.price) : '—'}</b> · Valor de referencia: ${fmtM(p.value)}${p.loan_from_club_id ? ` · Cedido por ${esc(club(p.loan_from_club_id)?.name)}` : ''}</div></div>
+          <div class="mt small muted">Valor: <b>${fmtM(p.value)}</b>${p.loan_from_club_id ? ` · Cedido por ${esc(club(p.loan_from_club_id)?.name)}` : ''}</div></div>
         <div class="card"><h3>Habilidades</h3>${stats}</div>
       </div>`;
   });

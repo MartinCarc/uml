@@ -154,7 +154,7 @@ Aplicar `supabase/migrations/20261107_ticket_income_fix.sql` una vez en SQL Edit
 
 Crear una temporada la deja **en preparación**. Para acreditar los ingresos de inicio, entrar en **Admin → Temporada → Iniciar temporada**. En la primera temporada son 200 M + 60 M para Premier y 150 M + 40 M para Championship, según la configuración. En las siguientes se conserva el saldo anterior y se suma la TV, sin repetir el presupuesto inicial. No recrear la temporada ni repetir créditos mediante ajustes manuales.
 
-El plantel muestra por separado **Valor** (la referencia cargada por el administrador) y **Precio pedido** (lo que fija el DT). Un precio pedido vacío no significa que se haya perdido el valor del jugador.
+El plantel muestra un único **Valor**, cargado al crear al jugador y editable después por su DT o el administrador (ver migración de valor único).
 
 
 ### Continuidad del saldo entre temporadas
@@ -167,3 +167,10 @@ Aplicar `supabase/migrations/20261107_season_balance_continuity.sql` después de
 - Primero se debe cerrar la temporada en curso. El inicio queda protegido contra la repetición del pago.
 - **Sponsors:** la regla confirmada es pagar al comienzo de cada temporada. La gestión y los pagos automáticos de sponsors siguen pendientes; esta actualización no inventa contratos ni importes.
 - **Iniciar nueva etapa** mantiene la separación de historiales y permite un nuevo presupuesto inicial en la primera temporada de esa etapa.
+
+
+### Valor único del jugador
+
+Ejecutar `supabase/migrations/20261107_unified_player_value.sql`. El importe cargado al crear al jugador es su valor inicial; luego el DT puede cambiarlo desde **Mi equipo → Editar → Valor**. El administrador también puede editarlo. Plantel, ficha, mercado y total del plantel utilizan ese mismo valor; desaparece el campo separado de precio pedido. Cambiar el valor no mueve dinero del equipo: el importe de cada transferencia se negocia en su oferta.
+
+Si un DT ya había cargado un precio pedido, la migración lo conserva como el valor actual. Si no, mantiene el valor de creación. Los jugadores archivados y las copias históricas no se modifican. Aplicar la consulta y publicar los archivos web juntos. El RPC conserva el nombre interno de su parámetro anterior por compatibilidad.

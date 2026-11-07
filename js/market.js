@@ -35,7 +35,7 @@
   const pendingCount = () => { const n = S.offers.filter((o) => o.status === 'pending' && o.responder_turn === S.myClub).length; return n ? ` (${n})` : ''; };
   const squadCountLabel = (cid) => { const n = squad(cid).length; const lim = cfg().squad_limit; const pend = S.queue.filter((q) => q.club_id === cid && ['free_sign', 'auction', 'raffle'].includes(q.kind)).length; return `<span style="color:${n >= lim ? 'var(--red)' : 'inherit'}">${n}/${lim}</span>${pend ? ` <span class="muted small">+${pend} por ingresar</span>` : ''}`; };
   function playersTable(list, opts = {}) {
-    return `<table><thead><tr><th>Pos</th><th>Jugador</th>${opts.club ? '<th>Equipo</th>' : ''}<th class="num">Edad</th><th class="num">Media</th>${opts.price ? '<th class="num">Precio</th>' : ''}<th></th></tr></thead><tbody>${list.map((p) => `<tr><td><span class="badge" title="${POS[p.position]}">${p.position}</span></td><td><a href="#/s/${S.sid}/jugador/${p.id}" style="color:inherit"><b>${esc(p.name)}</b></a> ${sancBadges(p.id)}</td>${opts.club ? `<td>${clubLabel(p.club_id)}</td>` : ''}<td class="num">${p.age}</td><td class="num">${p.overall ?? '-'}</td>${opts.price ? `<td class="num">${p.price ? fmtM(p.price) : '<span class="muted">a convenir</span>'}</td>` : ''}<td class="right">${opts.actions ? opts.actions(p) : ''}</td></tr>`).join('')}</tbody></table>`;
+    return `<table><thead><tr><th>Pos</th><th>Jugador</th>${opts.club ? '<th>Equipo</th>' : ''}<th class="num">Edad</th><th class="num">Media</th>${opts.price ? '<th class="num">Valor</th>' : ''}<th></th></tr></thead><tbody>${list.map((p) => `<tr><td><span class="badge" title="${POS[p.position]}">${p.position}</span></td><td><a href="#/s/${S.sid}/jugador/${p.id}" style="color:inherit"><b>${esc(p.name)}</b></a> ${sancBadges(p.id)}</td>${opts.club ? `<td>${clubLabel(p.club_id)}</td>` : ''}<td class="num">${p.age}</td><td class="num">${p.overall ?? '-'}</td>${opts.price ? `<td class="num">${fmtM(p.value)}</td>` : ''}<td class="right">${opts.actions ? opts.actions(p) : ''}</td></tr>`).join('')}</tbody></table>`;
   }
   function offerSummary(o) {
     const names = (ids) => (ids || []).map((id) => `<b>${esc(player(id)?.name || '?')}</b>`).join(', ');
@@ -65,7 +65,7 @@
   // ---------------- constructor de ofertas ----------------
   function offerForm(sellerId, prefill = {}) {
     const my = S.myClub; const mySquad = squad(my).filter((p) => !p.loan_from_club_id); const theirSquad = squad(sellerId).filter((p) => !p.loan_from_club_id);
-    const check = (p, name, sel) => `<label class="check"><input type="checkbox" name="${name}" value="${p.id}" ${sel?.includes(p.id) ? 'checked' : ''}> <span class="badge">${p.position}</span> ${esc(p.name)} <span class="muted tiny">${p.overall ?? ''}${p.price ? ' · ' + fmtM(p.price) : ''}</span></label>`;
+    const check = (p, name, sel) => `<label class="check"><input type="checkbox" name="${name}" value="${p.id}" ${sel?.includes(p.id) ? 'checked' : ''}> <span class="badge">${p.position}</span> ${esc(p.name)} <span class="muted tiny">${p.overall ?? ''}${' · ' + fmtM(p.value)}</span></label>`;
     return `
       <div class="kicker mb">Pido de ${esc(club(sellerId)?.name)}</div><div class="check-list mb">${theirSquad.map((p) => check(p, 'ask', prefill.ask)).join('')}</div>
       ${prefill.loan ? '' : `<div class="kicker mb">Entrego de mi equipo (opcional)</div><div class="check-list mb">${mySquad.map((p) => check(p, 'give', prefill.give)).join('')}</div>`}
@@ -75,7 +75,7 @@
   A.offerModal = (sellerId, pid, loan = false) => {
     if (!S.myClub) return toast('Necesitás dirigir un equipo para ofertar', 'error');
     modal(`<h2>${loan ? 'Pedir cesión' : 'Nueva oferta'} a ${esc(club(sellerId)?.name)}</h2>${loan ? '<div class="alert info">Cesión hasta el final de la temporada. El jugador vuelve solo a su club al cerrar la temporada.</div>' : ''}
-      <form onsubmit="A.sendOffer(event,'${sellerId}',${loan})">${offerForm(sellerId, { ask: pid ? [pid] : [], loan, money_give: player(pid)?.price || 0 })}
+      <form onsubmit="A.sendOffer(event,'${sellerId}',${loan})">${offerForm(sellerId, { ask: pid ? [pid] : [], loan, money_give: player(pid)?.value || 0 })}
       <div class="row"><button type="submit">Enviar oferta</button><button type="button" class="secondary" onclick="U.closeModal()">Cancelar</button></div></form>`, true);
   };
   const readOffer = (form) => { const f = new FormData(form); return { ask: f.getAll('ask'), give: f.getAll('give'), money_give: Number(f.get('money_give') || 0), money_ask: Number(f.get('money_ask') || 0) }; };
@@ -115,7 +115,7 @@
     const tabs = [['plantel', 'Plantel'], ['gimnasio', 'Gimnasio'], ['caja', 'Libro de caja']];
     let body;
     if (myTab === 'plantel') {
-      body = `<p class="muted small">El valor es la referencia cargada por el administrador; el precio pedido lo fijás vos. Podés fijar precio, dorsal y marcar jugadores como transferibles o cedibles. Liberar es gratis y sin compensación.</p>` +
+      body = `<p class="muted small">Podés modificar el valor y el dorsal de tus jugadores, y marcarlos como transferibles o cedibles. Liberar es gratis y sin compensación.</p>` +
         U.squadTable(my, { actions: (p) => p.loan_from_club_id ? '<span class="muted tiny">cedido</span>' : `<button class="sm secondary" onclick="A.editMyPlayer('${p.id}')">Editar</button> <button class="sm ghost" onclick="A.release('${p.id}')">Liberar</button>` });
     } else if (myTab === 'gimnasio') {
       const { data: tr } = await sb().from('player_training').select('*').eq('season_id', S.sid).eq('club_id', my);
@@ -136,11 +136,11 @@
   A.editMyPlayer = (pid) => {
     const p = player(pid);
     modal(`<h2>${esc(p.name)}</h2><form onsubmit="A.saveMyPlayer(event,'${pid}')">
-      <div class="fields"><div><label>Precio pedido (${U.CUR})</label><input name="price" type="number" min="0" step="100000" value="${p.price ?? ''}" placeholder="a convenir"></div><div><label>Dorsal</label><input name="number" type="number" min="1" max="99" value="${p.number ?? ''}"></div></div>
+      <div class="fields"><div><label>Valor (${U.CUR})</label><input name="value" type="number" min="0" step="1" value="${p.value ?? 0}" required></div><div><label>Dorsal</label><input name="number" type="number" min="1" max="99" value="${p.number ?? ''}"></div></div>
       <label class="check mb"><input type="checkbox" name="transfer" ${p.transfer_listed ? 'checked' : ''}> Transferible (aparece en el mercado)</label>
       <label class="check mb"><input type="checkbox" name="loan" ${p.loan_listed ? 'checked' : ''}> Cedible a préstamo</label>
       <div class="row"><button type="submit">Guardar</button><button type="button" class="secondary" onclick="U.closeModal()">Cancelar</button></div></form>`);
   };
-  A.saveMyPlayer = async (e, pid) => { e.preventDefault(); const f = new FormData(e.target); try { await rpc('update_my_player', { p_player: pid, p_season: S.sid, p_price: f.get('price') ? Number(f.get('price')) : null, p_number: f.get('number') ? Number(f.get('number')) : null, p_transfer: !!f.get('transfer'), p_loan: !!f.get('loan') }); closeModal(); toast('Guardado', 'ok'); refresh(); } catch (x) { err(x); } };
+  A.saveMyPlayer = async (e, pid) => { e.preventDefault(); const f = new FormData(e.target); try { await rpc('update_my_player', { p_player: pid, p_season: S.sid, p_price: Number(f.get('value')), p_number: f.get('number') ? Number(f.get('number')) : null, p_transfer: !!f.get('transfer'), p_loan: !!f.get('loan') }); closeModal(); toast('Guardado', 'ok'); refresh(); } catch (x) { err(x); } };
   A.train = async (pid, voucher) => { const p = player(pid); if (!confirm(`¿Entrenar a ${p.name}${voucher ? ' usando un vale' : ' por ' + fmtM(cfg().gym_cost)}? Suma +1 a la media.`)) return; try { await rpc('train_player', { p_season: S.sid, p_player: pid, p_use_voucher: voucher }); toast('Entrenamiento registrado', 'ok'); refresh(); } catch (x) { err(x); } };
 })();
