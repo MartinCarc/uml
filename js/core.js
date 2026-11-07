@@ -154,7 +154,7 @@ window.U = (() => {
         const sid = parts[1], page = parts[2] || 'inicio';
         if (S.sid !== sid || !S.season) { app.innerHTML = '<div class="loading">Cargando temporada…</div>'; await loadSeason(sid); }
         else S.myClub = S.user ? (S.seasonTeams.find((t) => t.manager_id === S.user.id)?.club_id || null) : null;
-        const map = { inicio: 'home-season', tabla: 'tabla', fixture: 'fixture', stats: 'stats', equipos: 'equipos', equipo: 'equipo', partido: 'partido', mercado: 'mercado', 'mi-equipo': 'mi-equipo', 'mis-partidos': 'mis-partidos', banco: 'banco', admin: 'admin', jugador: 'jugador' };
+        const map = { inicio: 'home-season', tabla: 'tabla', fixture: 'fixture', stats: 'stats', equipos: 'equipos', equipo: 'equipo', partido: 'partido', mercado: 'mercado', 'mi-equipo': 'mi-equipo', 'mis-partidos': 'mis-partidos', banco: 'banco', admin: 'admin', jugador: 'jugador', pizarra: 'pizarra' };
         renderNav(page === 'equipo' ? 'equipos' : page === 'partido' ? 'fixture' : page);
         const fn = routes[map[page]];
         if (!fn) return (app.innerHTML = '<div class="empty">Página inexistente.</div>');

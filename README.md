@@ -126,3 +126,23 @@ Supabase Free: 500 MB de base, 1 GB de archivos, proyecto pausado tras 7 días s
 - **No veo "Mi equipo"** → el admin tiene que asignarte un club en Admin → Clubes y DTs.
 - **No veo "Mis partidos"** → el admin tiene que marcarte como simulador en Admin → Usuarios.
 - **Un simulador no puede cargar un partido** → no está asignado a ese partido, o el admin lo cerró.
+
+## Pizarra táctica vertical
+
+Para habilitarla en la base existente, ejecutar **una vez** el contenido de `supabase/migrations/20261107_tactics.sql` en Supabase → SQL Editor → Run. Este archivo agrega el guardado de la pizarra y conserva los datos. Requiere la migración anterior de archivado/nueva etapa. No ejecutar el esquema completo ni `reset_v1.sql`.
+
+- Primero crear una temporada **en preparación**, agregar los equipos y cargar sus planteles. No hace falta iniciar la temporada ni generar partidos para probar la pizarra.
+- El DT asignado al club entra desde **Mi equipo → Pizarra táctica**. El administrador puede entrar desde **Equipos → equipo → Ver y editar pizarra**.
+- Elegir jugador y posición, agregarlo y arrastrar su ficha con mouse o dedo. También se puede enfocar una ficha y moverla con las flechas del teclado. La posición elegida aparece dentro del círculo y el nombre debajo. La posición de la ficha no cambia la posición original del jugador en su perfil.
+- Se permiten hasta once jugadores distintos. Se puede guardar una formación incompleta mientras se arma. Quitar una ficha no elimina al jugador del plantel.
+- Pulsar **Guardar pizarra** para publicar. El simulador accede desde **Partido → Pizarras de los equipos**. Al entrar se consulta la última formación guardada. La pizarra es la actual del equipo en esa temporada: no se guarda una copia por partido.
+- Las sanciones se muestran en la lista; el simulador debe comprobar su alcance por competencia en la página del partido. Si un jugador ya no pertenece al plantel, el DT debe quitar su ficha antes de volver a guardar.
+- Solo el DT del club y los administradores pueden guardar. Las temporadas cerradas son de solo lectura.
+- Publicar los archivos web actualizados en Vercel además de aplicar la migración en Supabase.
+
+
+### Banco de suplentes
+
+Después de la migración de la pizarra, ejecutar `supabase/migrations/20261107_tactics_bench.sql` en Supabase → SQL Editor → Run. Conserva las formaciones guardadas y agrega el banco de suplentes.
+
+En la columna junto al campo aparece **Banco de suplentes** (debajo del campo en celular). El DT o administrador puede elegir hasta **12 jugadores distintos**, sin repetir titulares, y quitar jugadores del banco para volver a seleccionarlos como titulares. **Guardar pizarra** publica titulares y suplentes juntos. El simulador ve ambos desde los mismos enlaces de la pizarra; las temporadas cerradas permanecen de solo lectura. Se permite guardar un banco incompleto.
