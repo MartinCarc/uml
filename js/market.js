@@ -115,7 +115,7 @@
     const tabs = [['plantel', 'Plantel'], ['gimnasio', 'Gimnasio'], ['caja', 'Libro de caja']];
     let body;
     if (myTab === 'plantel') {
-      body = `<p class="muted small">Podés fijar precio, dorsal y marcar jugadores como transferibles o cedibles. Liberar es gratis y sin compensación.</p>` +
+      body = `<p class="muted small">El valor es la referencia cargada por el administrador; el precio pedido lo fijás vos. Podés fijar precio, dorsal y marcar jugadores como transferibles o cedibles. Liberar es gratis y sin compensación.</p>` +
         U.squadTable(my, { actions: (p) => p.loan_from_club_id ? '<span class="muted tiny">cedido</span>' : `<button class="sm secondary" onclick="A.editMyPlayer('${p.id}')">Editar</button> <button class="sm ghost" onclick="A.release('${p.id}')">Liberar</button>` });
     } else if (myTab === 'gimnasio') {
       const { data: tr } = await sb().from('player_training').select('*').eq('season_id', S.sid).eq('club_id', my);

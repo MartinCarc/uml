@@ -1,0 +1,11 @@
+{
+  "name": "uml-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node finance.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.15"
+  }
+}

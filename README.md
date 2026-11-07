@@ -146,3 +146,12 @@ Para habilitarla en la base existente, ejecutar **una vez** el contenido de `sup
 Después de la migración de la pizarra, ejecutar `supabase/migrations/20261107_tactics_bench.sql` en Supabase → SQL Editor → Run. Conserva las formaciones guardadas y agrega el banco de suplentes.
 
 En la columna junto al campo aparece **Banco de suplentes** (debajo del campo en celular). El DT o administrador puede elegir hasta **12 jugadores distintos**, sin repetir titulares, y quitar jugadores del banco para volver a seleccionarlos como titulares. **Guardar pizarra** publica titulares y suplentes juntos. El simulador ve ambos desde los mismos enlaces de la pizarra; las temporadas cerradas permanecen de solo lectura. Se permite guardar un banco incompleto.
+
+
+### Corrección de entradas y visualización de valores
+
+Aplicar `supabase/migrations/20261107_ticket_income_fix.sql` una vez en SQL Editor. Corrige el cálculo al editar resultados y ajusta los saldos de equipos con ingresos por entradas de temporadas abiertas a la suma de sus movimientos registrados (incluye presupuestos, TV, transferencias y ajustes). Conserva los movimientos, los partidos y los jugadores; excluye temporadas cerradas e históricas. No inicia la temporada ni acredita presupuesto/TV pendientes.
+
+Crear una temporada la deja **en preparación**. Para acreditar presupuesto inicial y TV, entrar en **Admin → Temporada → Iniciar temporada**. En la configuración actual son 200 M + 60 M para Premier y 150 M + 40 M para Championship. No recrear la temporada ni repetir créditos mediante ajustes manuales.
+
+El plantel muestra por separado **Valor** (la referencia cargada por el administrador) y **Precio pedido** (lo que fija el DT). Un precio pedido vacío no significa que se haya perdido el valor del jugador.
