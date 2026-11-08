@@ -334,17 +334,63 @@
     }).join('')}</div>`;
   }
 
-  // Catalog matches the PES 2013 editor. Codes are stored independently of numeric abilities.
+  // Spanish labels for the PES 2013 codes. Stored card IDs remain unchanged.
   const PES13_CARD_NAMES = {
-    playing_styles: ['Classic No.10', 'Anchor Man', 'Trickster', 'Darting Run', 'Mazing Run', 'Pinpoint Pass', 'Early Cross', 'Box to Box', 'Incisive Run', 'Long Ranger', 'Enforcer', 'Goal Poacher', 'Dummy Runner', 'Free Roaming', 'Talisman', 'Fox in the Box', 'Offensive Sideback', 'Track Back'],
-    special_skills: ['1-touch Play', 'Outside Curve', 'Long Throw', 'Super-sub', 'Speed Merchant', 'Long Range Drive', 'Shoulder Feint Skills', 'Turning Skills', 'Roulette Skills', 'Flip Flap Skills', 'Flicking Skills', 'Scissors Skills', 'Step On Skills', 'Deft Touch Skills', 'Knuckle Shot', 'Jumping Volley', 'Scissor Kick', 'Heel Flick', 'Weighted Pass', 'Double Touch', 'Run Around', 'Sombrero', '180 Drag', 'Lunging Tackle', 'Diving Header', 'GK Long Throw'],
-  };
+    "playing_styles": [
+        "Número 10 clásico",
+        "Hombre ancla",
+        "Regateador habilidoso",
+        "Carrera explosiva",
+        "Regate en carrera",
+        "Pase milimétrico",
+        "Centro anticipado",
+        "Todoterreno",
+        "Desmarque incisivo",
+        "Disparos lejanos",
+        "Destructor",
+        "Cazagoles",
+        "Señuelo",
+        "Libertad de movimientos",
+        "Talismán",
+        "Zorro del área",
+        "Lateral ofensivo",
+        "Repliegue defensivo"
+    ],
+    "special_skills": [
+        "Pase al primer toque",
+        "Golpeo con el exterior",
+        "Saque de banda largo",
+        "Suplente decisivo",
+        "Velocidad endiablada",
+        "Disparo lejano con caída",
+        "Amago de hombro",
+        "Giros con el balón",
+        "Ruleta",
+        "Elástica",
+        "Toques elevados",
+        "Bicicletas",
+        "Pisadas",
+        "Toque sutil",
+        "Disparo sin efecto",
+        "Volea en salto",
+        "Tijera",
+        "Toque de tacón",
+        "Pase con efecto",
+        "Doble toque",
+        "Autopase",
+        "Sombrero",
+        "Arrastre de 180°",
+        "Entrada en plancha",
+        "Cabeceo en plancha",
+        "Saque largo con la mano"
+    ]
+};
   function playerCards(cards) {
-    const groups = [['playing_styles', 'Estilos de juego', 'Playing Style Cards', 'P'], ['special_skills', 'Habilidades especiales', 'Special Skills Cards', 'S']];
-    const valid = cards && typeof cards === 'object' && !Array.isArray(cards) && groups.every(([key, , , prefix]) => Array.isArray(cards[key]) && cards[key].every((code) => typeof code === 'string' && new RegExp(`^${prefix}[0-9]{2}$`).test(code) && Number(code.slice(1)) >= 1 && Number(code.slice(1)) <= PES13_CARD_NAMES[key].length));
-    return `<div class="pes-card-groups">${groups.map(([key, title, original, prefix]) => {
+    const groups = [['playing_styles', 'Estilos de juego', 'P'], ['special_skills', 'Habilidades especiales', 'S']];
+    const valid = cards && typeof cards === 'object' && !Array.isArray(cards) && groups.every(([key, , prefix]) => Array.isArray(cards[key]) && cards[key].every((code) => typeof code === 'string' && new RegExp(`^${prefix}[0-9]{2}$`).test(code) && Number(code.slice(1)) >= 1 && Number(code.slice(1)) <= PES13_CARD_NAMES[key].length));
+    return `<div class="pes-card-groups">${groups.map(([key, title]) => {
       const codes = valid ? [...new Set(cards[key])].sort() : [];
-      return `<section class="pes-ability-group"><h4>${title}</h4><div class="small muted">${original}</div>${!valid ? '<p class="small muted">Tarjetas pendientes de cargar.</p>' : !codes.length ? '<p class="small muted">Sin tarjetas.</p>' : `<ul class="pes-card-list">${codes.map((code) => `<li><span class="badge">${esc(code)}</span><span>${esc(PES13_CARD_NAMES[key][Number(code.slice(1)) - 1])}</span></li>`).join('')}</ul>`}</section>`;
+      return `<section class="pes-ability-group"><h4>${title}</h4>${!valid ? '<p class="small muted">Tarjetas pendientes de cargar.</p>' : !codes.length ? '<p class="small muted">Sin tarjetas.</p>' : `<ul class="pes-card-list">${codes.map((code) => `<li><span class="badge">${esc(code)}</span><span>${esc(PES13_CARD_NAMES[key][Number(code.slice(1)) - 1])}</span></li>`).join('')}</ul>`}</section>`;
     }).join('')}</div>`;
   }
 
@@ -365,7 +411,7 @@
       <div class="grid c2">
         <div class="card"><h3>Temporada</h3><div class="grid c4"><div class="stat"><div class="v">${n('yellow') + n('second_yellow')}</div><div class="l">Amarillas</div></div><div class="stat"><div class="v">${n('red') + n('second_yellow')}</div><div class="l">Rojas</div></div><div class="stat"><div class="v">${n('injury_minor') + n('injury_major')}</div><div class="l">Lesiones</div></div><div class="stat"><div class="v">${trainings.length}</div><div class="l">Entrenamientos</div></div></div>
           ${p.loan_from_club_id ? `<div class="mt small muted">Cedido por ${esc(club(p.loan_from_club_id)?.name)}</div>` : ''}</div>
-        <div class="card"><h3>Habilidades</h3>${stats}<div class="pes-player-cards"><h3>Tarjetas PES 2013</h3>${playerCards(p.pes2013_cards)}</div></div>
+        <div class="card"><h3>Habilidades</h3>${stats}<div class="pes-player-cards"><h3>Habilidades especiales</h3>${playerCards(p.pes2013_cards)}</div></div>
       </div>`;
   });
 
