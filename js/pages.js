@@ -110,7 +110,7 @@
     return Object.entries(c).map(([pid, n]) => ({ p: player(pid), n })).filter((x) => x.p).sort((x, y) => y.n - x.n || x.p.name.localeCompare(y.p.name)).slice(0, limit);
   }
   U.topList = topList;
-  const compTabs = (kindFilter, active, page) => S.competitions.filter(kindFilter).map((c) => `<a class="btn sm ${c.id === active ? 'navy' : 'secondary'}" href="#/s/${S.sid}/${page}/${c.id}">${esc(c.name)}</a>`).join('');
+  const compTabs = (kindFilter, active, page) => S.competitions.filter(kindFilter).map((c) => `<a class="btn sm ${c.id === active ? 'navy' : 'secondary'}" href="#/s/${S.sid}/${page}/${c.id}">${U.competitionMark(c,'competition-tab-logo')}${esc(c.name)}</a>`).join('');
 
   // ---------------- TABLA ----------------
   register('tabla', (cid) => {
@@ -121,7 +121,7 @@
     const relZone = c.tier === 1 || S.season.mode === 'one' ? (c.relegate_direct || 0) : 0;
     const promoZoneTop = c.tier === 2 ? (c.promote_direct || 0) : 0;
     const stripe = (r) => r.pos === 1 ? 'top' : (relZone && r.pos > n - relZone) ? 'rel' : (c.tier === 1 && c.promotion_slots && r.pos > n - relZone - c.promotion_slots) ? 'promo' : (promoZoneTop && r.pos <= promoZoneTop) ? 'top' : (c.tier === 2 && c.promotion_slots && r.pos > promoZoneTop && r.pos <= promoZoneTop + c.promotion_slots) ? 'promo' : '';
-    $('#app').innerHTML = pageHead(esc(c.name), `${esc(S.season.name)} · ${c.format?.rounds === 'single' ? 'Una rueda' : 'Ida y vuelta'}`, compTabs((x) => x.kind === 'league', c.id, 'tabla')) +
+    $('#app').innerHTML = U.competitionHead(c, `${esc(S.season.name)} · ${c.format?.rounds === 'single' ? 'Una rueda' : 'Ida y vuelta'}`, compTabs((x) => x.kind === 'league', c.id, 'tabla')) +
       (rows.length ? `<div class="card"><div class="table-wrap"><table>
         <thead><tr><th>#</th><th>Equipo</th><th>DT</th><th class="num">PJ</th><th class="num">G</th><th class="num">E</th><th class="num">P</th><th class="num">GF</th><th class="num">GC</th><th class="num">DIF</th><th class="num">PTS</th><th>Últimos 5</th></tr></thead>
         <tbody>${rows.map((r) => `<tr class="${S.myClub === r.club_id ? 'me' : ''}">
@@ -150,7 +150,7 @@
       body = cupGroups(c,ms,data||[]) + (ms.some((m)=>m.stage!=='group') ? bracket(c,ms.filter((m)=>m.stage!=='group')) : '');
     }
     else body = bracket(c, ms);
-    $('#app').innerHTML = pageHead(esc(c.name), esc(S.season.name), compTabs(() => true, c.id, 'fixture')) + body;
+    $('#app').innerHTML = U.competitionHead(c, esc(S.season.name), compTabs(() => true, c.id, 'fixture')) + body;
   });
   const simSub = (m) => m.simulator_id ? `Simula: ${esc(profile(m.simulator_id)?.username || '…')}` : '';
   function cupGroups(c,ms,table) {
@@ -187,7 +187,7 @@
     const simNote = m.simulator_id ? `Simula: <b>${esc(profile(m.simulator_id)?.username || '…')}</b>${[m.home_club_id, m.away_club_id].includes(S.seasonTeams.find((t) => t.manager_id === m.simulator_id)?.club_id) ? ' <span class="muted">· simula su propio partido · autorizado por admin</span>' : ''}` : '<span class="muted">Simulador sin asignar</span>';
     $('#app').innerHTML = `
       <div class="card navy">
-        <div class="center kicker" style="color:#8FB0EE">${esc(c?.name)} · ${m.stage === 'league' ? 'Fecha ' + m.round : (STAGE[m.stage] || '') + (m.leg === 2 ? ' · vuelta' : '')} · ${played ? 'Finalizado' : 'Pendiente'}${m.is_derby ? ' · Clásico' : ''}${m.neutral ? ' · Estadio neutral · tiempo extra y penales' : ''}</div>
+        ${U.competitionMark(c,'competition-match-logo')}<div class="center kicker" style="color:#8FB0EE">${esc(c?.name)} · ${m.stage === 'league' ? 'Fecha ' + m.round : (STAGE[m.stage] || '') + (m.leg === 2 ? ' · vuelta' : '')} · ${played ? 'Finalizado' : 'Pendiente'}${m.is_derby ? ' · Clásico' : ''}${m.neutral ? ' · Estadio neutral · tiempo extra y penales' : ''}</div>
         <div class="scorebox mt">
           <div style="display:flex;align-items:center;justify-content:flex-end;gap:14px;text-align:right"><div><div class="name">${esc(h?.name)}</div><div class="muted small">DT ${esc(managerName(h?.id))}</div></div>${crest(h, 'xl')}</div>
           <div><div class="big">${played ? `${m.home_goals} – ${m.away_goals}` : 'vs'}</div>${played && m.home_pens != null ? `<div class="center muted small">Penales ${m.home_pens} – ${m.away_pens}</div>` : ''}</div>
@@ -255,6 +255,7 @@
 
   // ---------------- ESTADÍSTICAS ----------------
   let statsTab = 'goal', statsComp = '';
+  U.statsCompetition = () => ['out','teams'].includes(statsTab) ? null : comp(statsComp);
   A.statsTab = (k) => { statsTab = k; U.route(); }; A.statsComp = (v) => { statsComp = v; U.route(); };
   register('stats', () => {
     const tabs = [['goal', 'Goleadores'], ['assist', 'Asistencias'], ['mvp', 'MVP'], ['save', 'Atajadas'], ['yellow', 'Amarillas'], ['red', 'Rojas'], ['out', 'Suspendidos y lesionados'], ['fairplay', 'Fair play'], ['teams', 'Equipos']];
@@ -273,7 +274,8 @@
       const rows = topList(statsTab, 30, statsComp || null);
       body = rows.length ? `<table><thead><tr><th>#</th><th>Jugador</th><th>Equipo</th><th class="num">Total</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td><a href="#/s/${S.sid}/jugador/${r.p.id}" style="color:inherit"><b>${esc(r.p.name)}</b></a> <span class="badge">${r.p.position}</span></td><td>${r.p.club_id ? clubLabel(r.p.club_id) : '<span class="muted">libre</span>'}</td><td class="num pts">${r.n}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">Sin datos todavía.</div>';
     }
-    $('#app').innerHTML = pageHead('Estadísticas', esc(S.season.name), `<select style="width:auto" onchange="A.statsComp(this.value)"><option value="">Toda la temporada</option>${S.competitions.map((c) => opt(c.id, c.name, statsComp)).join('')}</select>`) +
+    const heading = U.statsCompetition() ? (title,sub,actions)=>U.competitionHead(U.statsCompetition(),`Estadísticas · ${sub}`,actions) : pageHead;
+    $('#app').innerHTML = heading('Estadísticas', esc(S.season.name), `<select style="width:auto" onchange="A.statsComp(this.value)"><option value="">Toda la temporada</option>${S.competitions.map((c) => opt(c.id, c.name, statsComp)).join('')}</select>`) +
       `<div class="tabs">${tabs.map(([k, v]) => `<button class="${k === statsTab ? 'active' : ''}" onclick="A.statsTab('${k}')">${v}</button>`).join('')}</div><div class="card"><div class="table-wrap">${body}</div></div>`;
   });
 

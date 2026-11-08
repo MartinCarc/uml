@@ -10,3 +10,5 @@ La prueba de valor único comprueba que se conserven los importes anteriores y p
 Sponsors y copa: `npm test` también cubre contratos por división, pagos, cierre, castigos y cancelaciones; cuatro grupos/24 partidos, clasificación, eliminatorias, penales y entradas neutrales 50/50. Se usa un esquema Storage mínimo en memoria para comprobar permisos sin acceder a Supabase.
 
 Para la interfaz: `python sponsors-browser.py` desde esta carpeta. Requiere Python con Playwright y Chromium (o Playwright Chromium instalado); se puede indicar el ejecutable con `UML_CHROMIUM`. El navegador utiliza un Supabase simulado, sin conexiones a producción. Verifica elección, permisos, cargas de imágenes, diseño móvil, tablas de grupos y penales.
+
+`python competition-theme-browser.py` comprueba cinco paletas, contraste de los colores principales, cambios de competencia, partidos/rankings, restauración del tema UML, carga del logo, imagen sin recortar, fallback y ausencia de desbordamiento en celular. Usa datos simulados y no los logos originales del usuario.

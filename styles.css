@@ -188,3 +188,24 @@ form.narrow { max-width: 460px; }
 .sponsor-logo { display:block; width:160px; height:90px; object-fit:contain; object-position:left center; max-width:100%; }
 .stadium-photo { display:block; width:100%; max-height:280px; object-fit:cover; border-radius:10px; }
 details summary { cursor:pointer; color:var(--navy); font-weight:600; padding:8px 0; }
+
+/* Paletas inspiradas en los logos: solo durante la vista de una competencia. */
+html[data-competition="premier"] { --navy:#071B4B; --navy2:#102E70; --blue:#164CC4; --blue2:#103B9B; --bg:#F3F6FC; --tint:#E8EEFC; --line:#D4DEF4; --line2:#E6ECF8; --text:#10213F; --muted:#435779; --muted2:#7A8CA9; --competition-nav-ink:#D4E0FA; }
+html[data-competition="championship"] { --navy:#590707; --navy2:#791010; --blue:#AA1717; --blue2:#871010; --bg:#FCF5F5; --tint:#FCEAEA; --line:#EFD1D1; --line2:#F5E3E3; --text:#391818; --muted:#734747; --muted2:#A77979; --competition-nav-ink:#FFE0E0; }
+html[data-competition="cup"] { --navy:#260C48; --navy2:#40126C; --blue:#7420AF; --blue2:#591884; --bg:#F8F5FD; --tint:#F0E8FA; --line:#DECEEF; --line2:#ECE3F5; --text:#2A173B; --muted:#66517D; --muted2:#9681AE; --competition-nav-ink:#EAD9FF; }
+html[data-competition="supercup"] { --navy:#382405; --navy2:#51380B; --blue:#806000; --blue2:#624900; --bg:#FBF8EF; --tint:#F9F0D7; --line:#E9D9B1; --line2:#F1E8CE; --text:#372B15; --muted:#6E5C36; --muted2:#9D8B61; --competition-nav-ink:#FFF0BC; }
+html[data-competition="promotion"] { --navy:#17191C; --navy2:#30343A; --blue:#4C535C; --blue2:#30363D; --bg:#F5F6F7; --tint:#E7E9EC; --line:#D2D6DC; --line2:#E4E6E9; --text:#17191C; --muted:#535B65; --muted2:#8A919A; --competition-nav-ink:#E7E9EE; }
+html[data-competition] .nav a { color:var(--competition-nav-ink); }
+html[data-competition] .nav a.active { color:#fff; }
+html[data-competition] .card.navy .muted { color:var(--competition-nav-ink); }
+html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !important; }
+.competition-heading { display:flex; align-items:center; gap:14px; min-width:0; }
+.competition-heading > div { min-width:0; }
+.competition-mark { display:inline-flex; flex:none; width:60px; height:68px; align-items:center; justify-content:center; vertical-align:middle; }
+.competition-mark img { width:100%; height:100%; object-fit:contain; }
+.competition-placeholder { display:grid; place-items:center; width:48px; height:48px; border-radius:10px; background:var(--tint); color:var(--navy); font-family:var(--display); font-weight:800; font-size:18px; border:1px solid var(--line); }
+.competition-mark [hidden] { display:none; }
+.competition-tab-logo { width:22px; height:25px; margin-right:6px; }
+.competition-tab-logo .competition-placeholder { width:22px; height:22px; border-radius:4px; font-size:10px; }
+.competition-match-logo { display:flex; margin:0 auto 10px; width:60px; height:68px; }
+@media(max-width:640px) { .competition-heading { gap:10px; } .competition-head .competition-mark { width:46px; height:54px; } }

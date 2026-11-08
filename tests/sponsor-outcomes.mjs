@@ -35,10 +35,12 @@ await db.query('select cancel_competition($1)',[league]);a=await assess(0,'D');a
 // Anonymous/DT direct writes cannot manufacture contracts or upload staff media.
 await db.exec("select set_config('test.admin','false',false);set role authenticated");
 await assert.rejects(()=>db.query("insert into storage.objects(bucket_id,name) values('uml-media','stadiums/test.png')"),/row-level security/);
+await assert.rejects(()=>db.query("insert into storage.objects(bucket_id,name) values('uml-media','competitions/logo.png')"),/row-level security/);
 await assert.rejects(()=>db.query('insert into team_sponsor_contracts default values'),/permission denied/);
 await db.exec('reset role');
 await db.exec("select set_config('test.admin','true',false);set role authenticated");
 await db.query("insert into storage.objects(bucket_id,name) values('uml-media','stadiums/test.png')");
+await db.query("insert into storage.objects(bucket_id,name) values('uml-media','competitions/logo.png')");
 await assert.rejects(()=>db.query("insert into storage.objects(bucket_id,name) values('uml-media','other/test.png')"),/row-level security/);
 await db.exec('reset role');
 console.log('PASS: promotion won/lost by either division, correct greatest penalties, exact 15/12 goal thresholds, cancelled conditions, no bonus without both, media and contract write permissions.');

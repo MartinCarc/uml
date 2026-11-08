@@ -1,0 +1,17 @@
+COLORES Y LOGOS DE COMPETENCIAS
+
+1. Subí el contenido de este ZIP a GitHub, conservando las carpetas. No borres
+   los demás archivos. Es importante incluir js/competition-theme.js e index.html.
+2. En Supabase ejecutá como consulta NUEVA únicamente:
+   supabase/migrations/20261108_competition_logos.sql
+   Requiere que ya estén aplicadas las consultas del paquete de sponsors/imágenes.
+3. Admin → Competencias → Logo de la competencia: subí cada original y guardá.
+   PNG, JPG o WebP hasta 5 MB. La imagen se muestra completa y sin recolorear.
+   Los originales visibles en el chat no están incluidos en este ZIP porque no
+   estaban disponibles como archivos en esta carpeta de trabajo.
+4. Los colores son automáticos: Premier azul, Championship rojo, Cup violeta,
+   Supercup dorado y Promociones negro/plata. Se ven en tabla, fixture, partidos
+   y rankings filtrados. En secciones generales vuelve el estilo UML.
+
+No cambia resultados, jugadores, economía, sponsors ni distribución de la app.
+No se publicó en Vercel ni se ejecutó sobre tu Supabase.

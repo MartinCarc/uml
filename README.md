@@ -224,3 +224,12 @@ Para nuevas temporadas con copa se requieren 16 equipos. **Admin → Competencia
 Antes de generar cuartos, completar la **capacidad del estadio neutral** en la copa. Los dos primeros de cada grupo clasifican; cruces A1-B2, C1-D2, B1-A2 y D1-C2. Las siguientes rondas se sortean entre los ganadores. Cuartos, semifinales y final son a partido único y en estadio neutral. Se registra el marcador final después del tiempo extra; si sigue empatado, se cargan penales obligatorios. En grupos se admiten empates sin penales. No se puede cambiar un marcador que ya definió clasificados de una fase posterior.
 
 Las entradas de las eliminatorias se calculan con capacidad neutral × precio de entrada × multiplicador de la fase, con ocupación completa. La recaudación total se divide por mitades. La capacidad queda fija al generar eliminatorias. Corregir un resultado reemplaza los ingresos anteriores sin duplicarlos. Las copas previas con partidos conservan su formato.
+
+
+## Colores y logos de competencias
+
+Las tablas, fixtures, partidos y rankings filtrados usan la identidad de la competencia: Premier azul, Championship rojo, Cup violeta, Supercup dorado y Promociones negro/plata. Se mantienen las tipografías y distribución; victoria, derrota y advertencias conservan sus colores de significado. Al salir hacia secciones generales vuelve el estilo UML. Las estadísticas que muestran varias competencias conservan la identidad general.
+
+Para cargar los originales, aplicar **únicamente la nueva migración** `supabase/migrations/20261108_competition_logos.sql` después de la migración de imágenes del paquete anterior. Luego **Admin → Competencias → Logo de la competencia**: subir PNG/JPG/WebP (hasta 5 MB) o pegar un enlace y guardar. Los archivos se muestran completos y sin recolorear. Solo administradores pueden subirlos. No se cambian resultados, contratos ni importes. Las competencias cerradas conservan su imagen.
+
+Los logos visibles en el chat no se incorporaron como archivos locales; hasta subir cada original, se muestra una abreviatura de la competencia. También se admite `LIGA_CONFIG.COMPETITION_LOGOS` como mapa opcional de enlaces por clave `premier`, `championship`, `cup`, `supercup` y `promotion`; el logo guardado en la competencia tiene prioridad.

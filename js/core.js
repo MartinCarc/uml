@@ -145,6 +145,7 @@ window.U = (() => {
     const hash = location.hash || '#/';
     const parts = hash.slice(2).split('/').filter(Boolean);
     const app = $('#app');
+    if(parts[0]!=='s') U.applyCompetitionTheme?.(null);
     try {
       if (parts[0] === 'login') { renderNav(null); return routes.login(); }
       if (parts[0] === 'perfil') { renderNav(null); return routes.perfil(parts[1]); }
@@ -155,6 +156,7 @@ window.U = (() => {
         if (S.sid !== sid || !S.season) { app.innerHTML = '<div class="loading">Cargando temporada…</div>'; await loadSeason(sid); }
         else S.myClub = S.user ? (S.seasonTeams.find((t) => t.manager_id === S.user.id)?.club_id || null) : null;
         const map = { inicio: 'home-season', tabla: 'tabla', fixture: 'fixture', stats: 'stats', equipos: 'equipos', equipo: 'equipo', partido: 'partido', mercado: 'mercado', 'mi-equipo': 'mi-equipo', 'mis-partidos': 'mis-partidos', banco: 'banco', admin: 'admin', jugador: 'jugador', pizarra: 'pizarra' };
+        U.themeForRoute?.(page,parts[3]);
         renderNav(page === 'equipo' ? 'equipos' : page === 'partido' ? 'fixture' : page);
         const fn = routes[map[page]];
         if (!fn) return (app.innerHTML = '<div class="empty">Página inexistente.</div>');
@@ -162,7 +164,7 @@ window.U = (() => {
       }
       renderNav('inicio');
       await routes.home();
-    } catch (e) { err(e); app.innerHTML = `<div class="card"><h2>Error</h2><p>${esc(e.message)}</p><p><a href="#/">Volver al inicio</a></p></div>`; }
+    } catch (e) { U.applyCompetitionTheme?.(null); err(e); app.innerHTML = `<div class="card"><h2>Error</h2><p>${esc(e.message)}</p><p><a href="#/">Volver al inicio</a></p></div>`; }
   }
 
   return { CFG, CUR, $, esc, fmt, fmtM, date, datetime, POS, POS_ORDER, GROUP, STAGE, EVENT, SANC, S, setClient, client, toast, modal, closeModal, err, isAdmin, isSim, rpc, confirmDo, formData, opt,
