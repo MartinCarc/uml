@@ -19,7 +19,7 @@ Web para una liga de PES donde los partidos se juegan en la consola y acá se re
 - **Cierre de temporada**: multa de fair play, vuelven las cesiones, +1 año, retiro a los 41, y la temporada siguiente se propone con los ascendidos y descendidos.
 - **Auditoría**: toda acción del staff queda registrada.
 
-Quedan para las próximas etapas: subastas y sorteos, sponsors, pizarra táctica, subida de imágenes (escudos, caras, avatares), muro, comunicados y encuestas, salón de la fama, webhook de Discord, exportación a Excel, fase de grupos en la copa, banco (préstamos) y stats del option file.
+Quedan para las próximas etapas: subastas y sorteos, subida de imágenes de escudos/caras/avatares, muro, comunicados y encuestas, salón de la fama, webhook de Discord, exportación a Excel, banco (préstamos) y stats del option file. Sponsors, pizarra y grupos de UML Cup están incorporados mediante las migraciones indicadas abajo.
 
 ---
 
@@ -165,7 +165,7 @@ Aplicar `supabase/migrations/20261107_season_balance_continuity.sql` después de
 - Cada equipo conserva su último saldo final de la misma etapa, incluidos cero y deudas. Se registra en el nuevo libro como **Saldo de la temporada anterior**; el libro anterior se conserva intacto. Si el club no participó en la temporada inmediatamente anterior, se toma su última participación cerrada.
 - La TV se acredita al comenzar **cada temporada**, según la división actual del club. Los movimientos ya registrados durante la preparación se conservan.
 - Primero se debe cerrar la temporada en curso. El inicio queda protegido contra la repetición del pago.
-- **Sponsors:** la regla confirmada es pagar al comienzo de cada temporada. La gestión y los pagos automáticos de sponsors siguen pendientes; esta actualización no inventa contratos ni importes.
+- **Sponsors:** se pagan al comienzo de cada temporada y se liquidan al cierre; requieren configurar el catálogo y elegir el contrato antes del inicio (ver sección de sponsors).
 - **Iniciar nueva etapa** mantiene la separación de historiales y permite un nuevo presupuesto inicial en la primera temporada de esa etapa.
 
 
@@ -174,3 +174,53 @@ Aplicar `supabase/migrations/20261107_season_balance_continuity.sql` después de
 Ejecutar `supabase/migrations/20261107_unified_player_value.sql`. El importe cargado al crear al jugador es su valor inicial; luego el DT puede cambiarlo desde **Mi equipo → Editar → Valor**. El administrador también puede editarlo. Plantel, ficha, mercado y total del plantel utilizan ese mismo valor; desaparece el campo separado de precio pedido. Cambiar el valor no mueve dinero del equipo: el importe de cada transferencia se negocia en su oferta.
 
 Si un DT ya había cargado un precio pedido, la migración lo conserva como el valor actual. Si no, mantiene el valor de creación. Los jugadores archivados y las copias históricas no se modifican. Aplicar la consulta y publicar los archivos web juntos. El RPC conserva el nombre interno de su parámetro anterior por compatibilidad.
+
+
+## Sponsors, estadio y UML Cup con grupos
+
+### Actualización de una base existente
+
+Luego de las migraciones anteriores, ejecutar como consultas nuevas en Supabase SQL Editor, en este orden:
+
+1. `supabase/migrations/20261108_cup_groups.sql`
+2. `supabase/migrations/20261108_sponsors_and_stadium.sql`
+3. `supabase/migrations/20261108_neutral_gate.sql`
+4. `supabase/migrations/20261108_media_uploads.sql`
+
+Publicar también los archivos web del paquete, incluido **js/sponsors.js** y el **index.html** actualizado. No ejecutar `reset_v1.sql` ni volver a ejecutar el esquema completo. No se borran equipos, jugadores, partidos ni movimientos. Las temporadas ya iniciadas no reciben sponsors retroactivos; se eligen en una temporada en preparación. Los fixtures existentes se conservan y no se convierten automáticamente.
+
+### Configurar y elegir sponsors
+
+**Admin → Sponsors:** completar nombre, imagen y pago de Premier/Championship de cada nivel A-D. Los cuatro niveles se crean deshabilitados, sin importes inventados. Se puede habilitar una división dejando pendiente el importe de la otra. Admiten imágenes PNG/JPG/WebP de hasta 5 MB, subidas por administrador, o un enlace. Después marcar **Disponible para elegir** y guardar.
+
+**Mi equipo → Sponsor y estadio** (o **Equipos → equipo**): el DT o administrador elige un contrato y puede comparar las condiciones. Antes del inicio puede cambiarlo o quitarlo. Al iniciar, se toman la división y los importes vigentes y quedan fijos el nombre, imagen, importe y reglas. Luego se acredita una sola vez. Cambiar el catálogo no altera contratos iniciados. Un equipo sin sponsor puede jugar pero no recibe ese ingreso.
+
+| Nivel | Principal Premier / Championship | Copa Premier / Championship | Bonus |
+|---|---|---|---|
+| A | 15 / 12 goles de liga | 2 / 1 victorias en grupos | 15 % |
+| B | 5.º o mejor / 5.º o mejor | Cuartos / cuartos | 20 % |
+| C | Primeros 4 / ascenso directo o clasificación a promoción | Semifinales / cuartos | 30 % |
+| D | Campeón / ascenso directo o ganado en promoción | Campeón / finalista | 40 % |
+
+Solo hay bonus si se cumplen ambos objetivos. Cumplir únicamente el principal conserva el pago completo; la copa no compensa incumplir el principal. Devoluciones (porcentajes del pago inicial):
+
+- A: 10 % en ambas divisiones.
+- B Premier: 20 %; 30 % si queda en promoción y se salva; 40 % por descenso. B Championship: con ocho clubes, incumplir top 5 implica últimos tres y la devolución efectiva es 30 %.
+- C Premier: 35 %; 45 % en promoción sin descenso; 55 % por descenso. C Championship: 35 %, o 45 % entre los últimos tres.
+- D Premier: 50 %; 60 % en promoción sin descenso; 70 % por descenso. D Championship: 50 %, o 60 % entre los últimos tres.
+
+Se aplica únicamente el castigo mayor, incluyendo el descenso mediante promoción. En C Championship alcanza con clasificar a la promoción; en D debe lograr el ascenso. La devolución puede dejar saldo negativo. Al cerrar la temporada se registran bonus y devoluciones en el libro de caja, se guarda la evaluación y no se vuelven a cobrar. Los resultados que sustentan contratos liquidados quedan de solo lectura. Primero hay que finalizar liga/copa/promoción y resolver partidos pendientes; si hay promoción configurada, debe crearse y resolverse.
+
+**Anular competencia**, disponible para el administrador con confirmación, conserva los partidos y anula su condición del sponsor. Una condición anulada no genera premio ni castigo; tampoco se concede un bonus por cumplir un único objetivo. La pantalla del equipo muestra progreso y evaluación final.
+
+### Foto y datos del estadio
+
+En la página del equipo se muestran foto, nombre y capacidad. El administrador puede entrar en **Editar estadio** o **Administrar clubes → Editar** para cambiar los datos y subir la foto. Las imágenes se guardan en el bucket público `uml-media`, con escritura exclusiva de administradores. El historial conserva las copias de clubes de temporadas cerradas.
+
+### UML Cup
+
+Para nuevas temporadas con copa se requieren 16 equipos. **Admin → Competencias → Sortear 4 grupos** genera 24 partidos: cada grupo tiene seis encuentros, cada club juega tres y recibe una o dos localías. La página del fixture muestra cuatro tablas y sus calendarios. Desempates: puntos, diferencia de gol, goles a favor y nombre del club, coherente con el criterio de liga existente.
+
+Antes de generar cuartos, completar la **capacidad del estadio neutral** en la copa. Los dos primeros de cada grupo clasifican; cruces A1-B2, C1-D2, B1-A2 y D1-C2. Las siguientes rondas se sortean entre los ganadores. Cuartos, semifinales y final son a partido único y en estadio neutral. Se registra el marcador final después del tiempo extra; si sigue empatado, se cargan penales obligatorios. En grupos se admiten empates sin penales. No se puede cambiar un marcador que ya definió clasificados de una fase posterior.
+
+Las entradas de las eliminatorias se calculan con capacidad neutral × precio de entrada × multiplicador de la fase, con ocupación completa. La recaudación total se divide por mitades. La capacidad queda fija al generar eliminatorias. Corregir un resultado reemplaza los ingresos anteriores sin duplicarlos. Las copas previas con partidos conservan su formato.

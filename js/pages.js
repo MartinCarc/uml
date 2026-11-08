@@ -133,7 +133,7 @@
   });
 
   // ---------------- FIXTURE ----------------
-  register('fixture', (cid) => {
+  register('fixture', async (cid) => {
     const c = comp(cid) || S.competitions[0];
     if (!c) return ($('#app').innerHTML = pageHead('Fixture') + '<div class="empty">Sin competencias.</div>');
     const ms = S.matches.filter((m) => m.competition_id === c.id);
@@ -145,10 +145,21 @@
       const firstPending = keys.find((k) => rounds[k].some((m) => m.status === 'pending'));
       body = keys.map((r) => `<div class="card" id="fecha-${r}"><div class="row between"><h3 style="margin:0">Fecha ${r}</h3>${r === firstPending ? '<span class="badge blue">Próxima</span>' : ''}</div><div class="mt">${rounds[r].map((m) => matchRow(m, { sub: simSub })).join('')}</div></div>`).join('');
       if (firstPending) setTimeout(() => document.getElementById('fecha-' + firstPending)?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 50);
-    } else body = bracket(c, ms);
+    } else if (c.kind==='cup' && c.format?.groups) {
+      const {data,error}=await sb().rpc('cup_group_table',{p_competition:c.id}); if(error) throw error;
+      body = cupGroups(c,ms,data||[]) + (ms.some((m)=>m.stage!=='group') ? bracket(c,ms.filter((m)=>m.stage!=='group')) : '');
+    }
+    else body = bracket(c, ms);
     $('#app').innerHTML = pageHead(esc(c.name), esc(S.season.name), compTabs(() => true, c.id, 'fixture')) + body;
   });
   const simSub = (m) => m.simulator_id ? `Simula: ${esc(profile(m.simulator_id)?.username || '…')}` : '';
+  function cupGroups(c,ms,table) {
+    return '<div class="grid c2">'+['A','B','C','D'].map((group)=>{
+      const ids=S.compTeams.filter((t)=>t.competition_id===c.id && t.group_name===group).map((t)=>t.club_id);
+      const rows=table.filter((r)=>r.group_name===group).sort((a,b)=>a.pos-b.pos);
+      return `<div class="card"><h3>Grupo ${group}</h3><p class="muted small">Clasifican los dos primeros. Desempate: puntos, diferencia de gol, goles a favor y nombre del club.</p><div class="table-wrap"><table><thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>DG</th><th>Pts</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}${i<2?' ✓':''}</td><td>${clubLabel(r.club_id)}</td><td>${r.pj}</td><td>${r.gf-r.gc}</td><td><b>${r.pts}</b></td></tr>`).join('')}</tbody></table></div><div class="mt">${ms.filter((m)=>m.stage==='group'&&ids.includes(m.home_club_id)).sort((a,b)=>a.round-b.round).map((m)=>matchRow(m,{sub:()=>`Fecha ${m.round}`})).join('')}</div></div>`;
+    }).join('')+'</div>';
+  }
   function bracket(c, ms) {
     const rounds = {}; ms.forEach((m) => (rounds[m.round] ||= []).push(m));
     const cols = Object.keys(rounds).sort((a, b) => a - b).map((r) => {
@@ -169,14 +180,14 @@
     if (!m) return ($('#app').innerHTML = '<div class="empty">Partido inexistente.</div>');
     const c = comp(m.competition_id); const h = club(m.home_club_id), a = club(m.away_club_id); const played = m.status === 'played';
     const evs = S.events.filter((e) => e.match_id === mid);
-    const canEdit = !S.season.historical && (isAdmin() || (isSim() && m.simulator_id === S.user?.id && !m.locked));
+    const canEdit = S.season.status !== 'closed' && !S.season.historical && (isAdmin() || (isSim() && m.simulator_id === S.user?.id && !m.locked));
     const goals = (cid) => evs.filter((e) => e.club_id === cid && (e.type === 'goal' || e.type === 'own_goal')).map((e) => `<div class="list-item" style="justify-content:flex-start;gap:8px"><span class="badge blue">GOL</span><span><b>${esc(player(e.player_id)?.name || 'Sin jugador')}</b>${e.type === 'own_goal' ? ' <span class="muted small">(en contra)</span>' : ''}${e.assist_player_id ? ` <span class="muted small">· asist. ${esc(player(e.assist_player_id)?.name)}</span>` : ''}</span></div>`).join('') || '<div class="muted small">Sin goles</div>';
     const cards = evs.filter((e) => ['yellow', 'second_yellow', 'red'].includes(e.type)).map((e) => `<div class="list-item" style="justify-content:flex-start;gap:8px">${e.type === 'yellow' ? '<span class="pill-yellow"></span>' : e.type === 'second_yellow' ? '<span class="pill-yellow"></span><span class="pill-red"></span>' : '<span class="pill-red"></span>'}<span><b>${esc(player(e.player_id)?.name || '?')}</b> <span class="muted small">· ${esc(club(e.club_id)?.name)} · ${EVENT[e.type]}</span></span>${sancBadges(e.player_id)}</div>`).join('') || '<div class="muted small">Sin tarjetas</div>';
     const inj = evs.filter((e) => e.type.startsWith('injury')).map((e) => `<div class="list-item" style="justify-content:flex-start;gap:8px"><span class="badge amber">+</span><span><b>${esc(player(e.player_id)?.name || '?')}</b> <span class="muted small">· ${esc(club(e.club_id)?.name)} · ${EVENT[e.type]}</span></span>${sancBadges(e.player_id)}</div>`).join('') || '<div class="muted small">Sin lesiones</div>';
     const simNote = m.simulator_id ? `Simula: <b>${esc(profile(m.simulator_id)?.username || '…')}</b>${[m.home_club_id, m.away_club_id].includes(S.seasonTeams.find((t) => t.manager_id === m.simulator_id)?.club_id) ? ' <span class="muted">· simula su propio partido · autorizado por admin</span>' : ''}` : '<span class="muted">Simulador sin asignar</span>';
     $('#app').innerHTML = `
       <div class="card navy">
-        <div class="center kicker" style="color:#8FB0EE">${esc(c?.name)} · ${m.stage === 'league' ? 'Fecha ' + m.round : (STAGE[m.stage] || '') + (m.leg === 2 ? ' · vuelta' : '')} · ${played ? 'Finalizado' : 'Pendiente'}${m.is_derby ? ' · Clásico' : ''}</div>
+        <div class="center kicker" style="color:#8FB0EE">${esc(c?.name)} · ${m.stage === 'league' ? 'Fecha ' + m.round : (STAGE[m.stage] || '') + (m.leg === 2 ? ' · vuelta' : '')} · ${played ? 'Finalizado' : 'Pendiente'}${m.is_derby ? ' · Clásico' : ''}${m.neutral ? ' · Estadio neutral · tiempo extra y penales' : ''}</div>
         <div class="scorebox mt">
           <div style="display:flex;align-items:center;justify-content:flex-end;gap:14px;text-align:right"><div><div class="name">${esc(h?.name)}</div><div class="muted small">DT ${esc(managerName(h?.id))}</div></div>${crest(h, 'xl')}</div>
           <div><div class="big">${played ? `${m.home_goals} – ${m.away_goals}` : 'vs'}</div>${played && m.home_pens != null ? `<div class="center muted small">Penales ${m.home_pens} – ${m.away_pens}</div>` : ''}</div>
@@ -204,8 +215,8 @@
     const m = S.matches.find((x) => x.id === mid); const c = comp(m.competition_id); const h = club(m.home_club_id), a = club(m.away_club_id);
     const evs = S.events.filter((e) => e.match_id === mid);
     const both = [...squad(h.id), ...squad(a.id)];
-    const needPens = c.kind !== 'league' && c.format?.penalties !== false;
-    modal(`<h2>${esc(h.name)} vs ${esc(a.name)}</h2><form onsubmit="A.saveResult(event,'${mid}')">
+    const needPens = c.kind !== 'league' && m.stage !== 'group' && c.format?.penalties !== false;
+    modal(`<h2>${esc(h.name)} vs ${esc(a.name)}</h2><form onsubmit="A.saveResult(event,'${mid}')">${m.neutral ? '<p class="alert info">Estadio neutral. Cargá el marcador final después del tiempo extra y, si sigue empatado, los penales.</p>' : ''}
       <div class="fields"><div><label>${esc(h.name)}</label><input name="home" type="number" min="0" value="${m.home_goals ?? 0}" required></div><div><label>${esc(a.name)}</label><input name="away" type="number" min="0" value="${m.away_goals ?? 0}" required></div></div>
       ${needPens ? `<div class="fields"><div><label>Penales ${esc(h.short_name || h.name)} (si hubo)</label><input name="home_pens" type="number" min="0" value="${m.home_pens ?? ''}"></div><div><label>Penales ${esc(a.short_name || a.name)}</label><input name="away_pens" type="number" min="0" value="${m.away_pens ?? ''}"></div></div>` : ''}
       <div class="row between"><label style="margin:0">Goles, tarjetas y lesiones</label><button type="button" class="secondary xs" onclick="A.addEventRow('${mid}')">+ Agregar</button></div>
@@ -282,10 +293,12 @@
     const { data: tx } = await sb().from('transactions').select('*').eq('club_id', cid).eq('season_id', S.sid).order('created_at', { ascending: false }).limit(100);
     let bal = Number(t?.budget || 0);
     const ledger = (tx || []).map((x) => { const row = { ...x, bal }; bal -= Number(x.amount); return row; });
+    const sponsor = await U.sponsorCard(cid);
     const recent = S.matches.filter((m) => m.status === 'played' && (m.home_club_id === cid || m.away_club_id === cid)).sort((a, b) => (b.played_seq || 0) - (a.played_seq || 0)).slice(0, 6);
     $('#app').innerHTML = `
       <div class="card navy"><div class="row" style="gap:18px">${crest(c, 'xl')}<div><h1 style="margin:0">${esc(c.name)}</h1><div class="muted">DT <b style="color:#fff">${esc(managerName(cid))}</b> · ${esc(c.stadium_name || 'Estadio')} (${Number(c.stadium_capacity).toLocaleString('es-AR')})${t?.tier === 2 ? ' · Championship' : ''}</div></div>
         <div class="grid c4" style="margin-left:auto;min-width:300px"><div class="stat"><div class="v">${fmtM(t?.budget)}</div><div class="l">Presupuesto</div></div><div class="stat"><div class="v">${pos ?? '-'}°</div><div class="l">Posición</div></div><div class="stat"><div class="v">${squad(cid).length}/${cfg().squad_limit}</div><div class="l">Plantel</div></div><div class="stat"><div class="v">${fmtM(value)}</div><div class="l">Valor plantel</div></div></div></div></div>
+      <div class="grid c2">${sponsor}<div class="card"><h3>Estadio</h3>${c.stadium_photo_url ? `<img class="stadium-photo mb" src="${esc(c.stadium_photo_url)}" alt="${esc(c.stadium_name || 'Estadio')}">` : '<div class="empty">Sin foto del estadio.</div>'}<h3>${esc(c.stadium_name || 'Estadio sin nombre')}</h3><p>Capacidad: <b>${Number(c.stadium_capacity).toLocaleString('es-AR')}</b> espectadores</p>${isAdmin() && !S.season.historical ? `<button class="sm secondary" onclick="A.clubModal('${cid}')">Editar estadio</button>` : ''}</div></div>
       <div class="card"><div class="row between mb"><h3 style="margin:0">Pizarra táctica</h3><a class="btn sm secondary" href="#/s/${S.sid}/pizarra/${cid}">${!S.season.historical && S.season.status !== 'closed' && (mine || isAdmin()) ? 'Ver y editar pizarra' : 'Ver pizarra'}</a></div><p class="muted small">Consultá la formación actual publicada por el equipo.</p></div>
       <div class="card"><div class="row between"><h3 style="margin:0">Plantel</h3>${mine ? `<a class="btn sm secondary" href="#/s/${S.sid}/mi-equipo">Gestionar mi equipo</a>` : ''}</div><div class="mt">${squadTable(cid, { actions: (p) => canOffer && !p.loan_from_club_id ? `<button class="sm" onclick="A.offerModal('${cid}','${p.id}')">Ofertar</button>` : '' })}</div></div>
       <div class="grid c2">

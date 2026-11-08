@@ -1,0 +1,53 @@
+ACTUALIZACIÓN UML — SPONSORS, ESTADIO Y COPA
+
+1. GITHUB
+Descomprimí el ZIP y subí su contenido, conservando las carpetas.
+Actualiza index.html, styles.css y los archivos dentro de js.
+Incluye js/sponsors.js: no lo omitas. No borres los otros archivos del repositorio.
+
+2. SUPABASE
+Ya deben estar aplicadas las migraciones anteriores de archivado, pizarra,
+suplentes, entradas, continuidad de saldos y valor único de jugadores.
+No repitas esas consultas ni uses reset_v1.sql o el esquema completo.
+
+En SQL Editor creá cuatro consultas NUEVAS y ejecutalas una por una en este orden:
+  1) supabase/migrations/20261108_cup_groups.sql
+  2) supabase/migrations/20261108_sponsors_and_stadium.sql
+  3) supabase/migrations/20261108_neutral_gate.sql
+  4) supabase/migrations/20261108_media_uploads.sql
+
+Estas consultas conservan los equipos, jugadores, partidos y movimientos.
+No crean importes ficticios ni pagan sponsors retroactivos.
+
+3. CONFIGURAR SPONSORS
+Admin → Sponsors: para cada nivel A-D completá nombre, imagen y pago por división.
+Marcá Disponible para elegir y guardá. Las reglas acordadas ya están incluidas.
+Los niveles empiezan deshabilitados y sin pagos configurados.
+
+4. ELEGIR EL CONTRATO
+En una temporada EN PREPARACIÓN, el DT entra en Mi equipo → Sponsor y estadio
+(o Equipos → su equipo), compara condiciones y elige un sponsor.
+El administrador también puede elegir por un club.
+Al iniciar se paga el contrato y se bloquea su elección. Al cerrar se liquida
+el bonus o el castigo. No se pueden elegir sponsors en una temporada ya iniciada.
+
+5. FOTO DEL ESTADIO
+Equipos → equipo → Editar estadio, o Administrar clubes → Editar.
+Solo el administrador puede subir fotos. JPG, PNG o WebP de hasta 5 MB.
+En la página del equipo se muestra foto, nombre y capacidad.
+
+6. UML CUP
+Las nuevas copas usan cuatro grupos de cuatro. El administrador sortea los grupos
+desde Competencias. Se generan 24 partidos y clasifican los dos primeros de cada grupo.
+Antes de cuartos, configurá la capacidad del estadio neutral en la copa.
+Las eliminatorias son a partido único, con tiempo extra y penales si hay empate.
+Las entradas neutrales se reparten por mitades; corregir resultados no duplica ingresos.
+Los fixtures anteriores que ya tienen partidos se conservan y no se convierten.
+
+7. FINALIZACIÓN
+Finalizá las ligas y la copa y resolvé las promociones antes de cerrar una temporada
+con sponsors. Si una competencia se cancela, usá Anular competencia: sus partidos
+se conservan y su condición del sponsor no genera premio ni castigo.
+
+Esta entrega fue comprobada con una base y un navegador de prueba.
+No se ejecutó sobre tu Supabase ni se publicó en tu Vercel.

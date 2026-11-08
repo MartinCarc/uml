@@ -116,8 +116,8 @@
         </div></div>
       <div class="card"><h3>3 · UML Cup</h3>
         <label class="check mb"><input type="checkbox" name="cup_enabled" checked> Crear la copa de la liga (la juegan todos los equipos de la temporada)</label>
-        <div class="fields"><div><label>Nombre</label><input name="cup_name" value="UML Cup"></div><div><label>Llaves</label><select name="cup_legs"><option value="1">Partido único</option><option value="2">Ida y vuelta (final a partido único)</option></select></div><div><label>Desempate</label><select name="cup_pen"><option value="true">Penales</option></select></div></div>
-        <div class="help">Eliminación directa. Si la cantidad de equipos no es potencia de 2, los sobrantes pasan la primera ronda por sorteo. La fase de grupos llega en una próxima etapa.</div></div>
+        <div class="fields"><div><label>Nombre</label><input name="cup_name" value="UML Cup"></div><input type="hidden" name="cup_legs" value="1"><div><label>Desempate</label><select name="cup_pen"><option value="true">Penales</option></select></div></div>
+        <div class="help">16 equipos: cuatro grupos de cuatro, tres fechas y dos clasificados por grupo. Cuartos, semifinales y final a partido único en estadio neutral, con tiempo extra y penales. Las entradas neutrales se reparten por mitades.</div></div>
       <div class="card"><h3>4 · UML Supercup</h3><label class="check"><input type="checkbox" name="supercup_enabled" checked> Crear la Supercopa (campeón de liga vs campeón de copa; si coinciden, subcampeón de liga). Partido único con penales.</label></div>
       <div class="card"><h3>5 · Economía</h3><p class="muted small">El presupuesto inicial se entrega solo en la temporada 1 de la etapa. En las siguientes se conserva el saldo del equipo. La TV se acredita al iniciar cada temporada.</p>
         <div class="fields"><div><label>Inicial Premier (solo temporada 1)</label><input name="budget_tier1" type="number" value="${d.budget_tier1}"></div><div><label>Inicial Championship (solo temporada 1)</label><input name="budget_tier2" type="number" value="${d.budget_tier2}"></div>
@@ -133,6 +133,7 @@
     e.preventDefault(); const form = e.target; const f = new FormData(form);
     const two = f.get('mode') === 'two'; const t1 = f.getAll('t1'), t2 = two ? f.getAll('t2') : [];
     if (t1.length < 2) return toast('Elegí al menos 2 equipos para la primera división', 'error');
+    if (f.get('cup_enabled') && t1.length + t2.length !== 16) return toast('La UML Cup con grupos necesita 16 equipos. Podés crear la temporada sin copa si estás haciendo una prueba menor.', 'error');
     if (two && t2.length < 2) return toast('Elegí al menos 2 equipos para la segunda división', 'error');
     if (t1.some((id) => t2.includes(id))) return toast('Un club no puede estar en las dos divisiones', 'error');
     const config = { budget_tier1: +f.get('budget_tier1'), budget_tier2: +f.get('budget_tier2'), tv_tier1: +f.get('tv_tier1'), tv_tier2: +f.get('tv_tier2'), ticket_price: +f.get('ticket_price'), fairplay_fine: +f.get('fairplay_fine'), gym_cost: +f.get('gym_cost'), squad_limit: +f.get('squad_limit') };
@@ -141,7 +142,7 @@
       const base = { season_id: season.id, status: 'draft', points_win: +f.get('points_win') || 3, points_draw: +f.get('points_draw') || 1, promote_direct: 0, relegate_direct: 0, promotion_slots: 0 };
       const comps = [{ ...base, kind: 'league', tier: 1, name: f.get('league1_name'), format: { rounds: f.get('league1_rounds') }, relegate_direct: two ? +f.get('relegate_direct') : 0, promotion_slots: two ? +f.get('promotion_slots') : 0, sort_order: 1 }];
       if (two) comps.push({ ...base, kind: 'league', tier: 2, name: f.get('league2_name'), format: { rounds: f.get('league2_rounds') }, promote_direct: +f.get('promote_direct'), promotion_slots: +f.get('promotion_slots'), sort_order: 2 });
-      if (f.get('cup_enabled')) comps.push({ ...base, kind: 'cup', tier: 1, name: f.get('cup_name'), format: { legs: +f.get('cup_legs'), penalties: true }, sort_order: 3 });
+      if (f.get('cup_enabled')) comps.push({ ...base, kind: 'cup', tier: 1, name: f.get('cup_name'), format: { groups: true, legs: 1, penalties: true, extra_time: true, neutral_knockout: true }, sort_order: 3 });
       if (f.get('supercup_enabled')) comps.push({ ...base, kind: 'supercup', tier: 1, name: 'UML Supercup', format: { legs: 1, penalties: true }, sort_order: 4 });
       const created = await q(sb().from('competitions').insert(comps).select());
       await q(sb().from('season_teams').insert([...t1.map((id) => ({ season_id: season.id, club_id: id, tier: 1 })), ...t2.map((id) => ({ season_id: season.id, club_id: id, tier: 2 }))]));
@@ -159,8 +160,8 @@
     if (!guard()) return;
     if (S.season.historical) return ($('#app').innerHTML = pageHead('Administración', esc(S.season.name)) + '<div class="empty">Esta temporada pertenece a una etapa archivada. Su historial se conserva para consulta.</div>');
     await loadProfiles();
-    const tabs = [['temporada', 'Temporada'], ['clubes', 'Clubes y DTs'], ['jugadores', 'Jugadores'], ['competencias', 'Competencias'], ['partidos', 'Partidos'], ['sanciones', 'Sanciones'], ['usuarios', 'Usuarios'], ['auditoria', 'Auditoría']];
-    const body = await ({ temporada: tabSeason, clubes: tabClubs, jugadores: tabPlayers, competencias: tabComps, partidos: tabMatches, sanciones: tabSanctions, usuarios: tabUsers, auditoria: tabAudit }[tab])();
+    const tabs = [['temporada', 'Temporada'], ['clubes', 'Clubes y DTs'], ['jugadores', 'Jugadores'], ['competencias', 'Competencias'], ['partidos', 'Partidos'], ['sanciones', 'Sanciones'], ['usuarios', 'Usuarios'], ['auditoria', 'Auditoría'], ['sponsors', 'Sponsors']];
+    const body = await ({ temporada: tabSeason, clubes: tabClubs, jugadores: tabPlayers, competencias: tabComps, partidos: tabMatches, sanciones: tabSanctions, usuarios: tabUsers, auditoria: tabAudit, sponsors: U.sponsorAdmin }[tab])();
     $('#app').innerHTML = pageHead('Administración', esc(S.season.name) + ' ' + statusBadge(S.season.status)) + `<div class="tabs">${tabs.map(([k, v]) => `<button class="${k === tab ? 'active' : ''}" onclick="A.adminTab('${k}')">${v}</button>`).join('')}</div>${body}`;
   });
 
@@ -172,10 +173,10 @@
     const mul = (k, label) => `<div><label>${label}</label><input name="mul_${k}" type="number" step="0.05" min="0" value="${c.multipliers[k]}"></div>`;
     return `<div class="grid c2">
       <div class="card"><h3>Estado</h3>
-        ${s.status === 'draft' ? `<p>La temporada está en preparación. Al iniciarla se conserva el saldo final de cada equipo y se acredita la TV según su división actual. El presupuesto inicial se entrega únicamente en la primera temporada de la etapa. Antes, asigná los DTs y cargá los planteles.</p><button class="navy" onclick="A.startSeason()">Iniciar temporada</button>` : ''}
+        ${s.status === 'draft' ? `<p>La temporada está en preparación. Al iniciarla se conserva el saldo final de cada equipo y se acredita la TV según su división actual. El presupuesto inicial se entrega únicamente en la primera temporada de la etapa. Los sponsors elegidos se pagan al inicio. Antes, asigná los DTs y cargá los planteles.</p><button class="navy" onclick="A.startSeason()">Iniciar temporada</button>` : ''}
         ${s.status === 'active' ? `<p><b>Mercado:</b> <span class="badge ${s.market_open ? 'green' : 'red'}">${s.market_open ? 'Abierto' : 'Cerrado'}</span> <span class="muted small">${esc(s.market_label || '')}</span></p>
           <div class="row mb">${s.market_open ? `<button class="danger" onclick="A.setMarket(false)">Cerrar mercado</button>` : `<button onclick="A.setMarket(true)">Abrir mercado (ejecuta ${S.queue.length} en espera)</button>`}</div>
-          <div class="hr"></div><p class="small muted">Cerrar la temporada: cobra la multa de fair play, devuelve las cesiones, suma un año a todos los jugadores y retira a los que llegan a ${c.retire_age}. No se puede deshacer.</p><button class="danger" onclick="A.closeSeason()">Cerrar temporada</button>` : ''}
+          <div class="hr"></div><p class="small muted">Cerrar la temporada: liquida bonus y devoluciones de sponsors, cobra la multa de fair play, devuelve las cesiones, suma un año a todos los jugadores y retira a los que llegan a ${c.retire_age}. No se puede deshacer.</p><button class="danger" onclick="A.closeSeason()">Cerrar temporada</button>` : ''}
         ${s.status === 'closed' ? `<p>Temporada cerrada el ${date(s.closed_at)}.</p><a class="btn" href="#/nueva-temporada">Crear la temporada siguiente</a>` : ''}
         ${retiringSoon()}
         ${s.status !== 'closed' ? '<div class="hr"></div><p class="small muted">Eliminar esta temporada borra sus competencias, resultados y movimientos. No se puede deshacer.</p><button class="danger" onclick="A.deleteSeasonModal()">Eliminar temporada</button>' : ''}
@@ -194,7 +195,7 @@
     Object.entries(f).forEach(([k, v]) => { if (k === 'name') return; if (k.startsWith('occ_')) nc.occupancy[k.slice(4)] = +v; else if (k.startsWith('mul_')) nc.multipliers[k.slice(4)] = +v; else nc[k] = +v; });
     try { await q(sb().from('seasons').update({ name: f.name, config: nc }).eq('id', S.sid)); toast('Configuración guardada', 'ok'); refresh(); } catch (x) { err(x); }
   };
-  A.startSeason = () => U.confirmDo(`¿Iniciar la temporada para ${S.seasonTeams.length} equipos? Se conserva el saldo anterior y se acredita la TV. El presupuesto inicial solo se entrega en la primera temporada de la etapa.`, async () => { await rpc('start_season', { p_season: S.sid }); toast('Temporada iniciada', 'ok'); refresh(); });
+  A.startSeason = () => U.confirmDo(`¿Iniciar la temporada para ${S.seasonTeams.length} equipos? Se conserva el saldo anterior y se acreditan la TV y los sponsors elegidos. El presupuesto inicial solo se entrega en la primera temporada de la etapa.`, async () => { await rpc('start_season', { p_season: S.sid }); toast('Temporada iniciada', 'ok'); refresh(); });
   A.setMarket = (open) => {
     const label = open ? prompt('Nombre de este mercado (se muestra a todos):', S.queue.length ? 'Mercado de mitad de temporada' : 'Mercado abierto') : prompt('Mensaje mientras esté cerrado:', 'Mercado cerrado · próximo: mitad de temporada');
     if (label === null) return;
@@ -224,6 +225,7 @@
     modal(`<h2>${id ? 'Editar club' : 'Nuevo club'}</h2><form onsubmit="A.saveClub(event,'${id || ''}')">
       <div class="fields"><div><label>Nombre</label><input name="name" value="${esc(c.name || '')}" required></div><div><label>Abreviatura</label><input name="short_name" maxlength="4" value="${esc(c.short_name || '')}"></div><div><label>Color</label><input name="color" type="color" value="${esc(c.color || '#1F5FC4')}"></div></div>
       <div class="fields"><div><label>Estadio</label><input name="stadium_name" value="${esc(c.stadium_name || '')}"></div><div><label>Capacidad real</label><input name="stadium_capacity" type="number" min="1000" value="${c.stadium_capacity || 40000}" required></div></div>
+      <div class="field"><label>Foto del estadio (JPG, PNG o WebP, hasta 5 MB)</label><input name="stadium_file" type="file" accept="image/jpeg,image/png,image/webp"></div><div class="field"><label>O enlace de foto del estadio</label><input name="stadium_photo_url" type="url" value="${esc(c.stadium_photo_url || '')}"></div>
       <div class="field"><label>Escudo (URL de imagen PNG)</label><input name="crest_url" type="url" value="${esc(c.crest_url || '')}" placeholder="https://…"><div class="help">La subida directa de escudos llega en la etapa de imágenes; por ahora pegá un link.</div></div>
       ${!id && editingSeasonClubs() && S.season.status === 'draft' ? `<label class="check mb"><input type="checkbox" name="add" checked> Sumar a esta temporada ${S.season.mode === 'two' ? '<select name="tier" style="width:auto;margin-left:8px"><option value="1">Premier</option><option value="2">Championship</option></select>' : ''}</label>` : ''}
       <div class="row"><button type="submit">Guardar</button><button type="button" class="secondary" onclick="U.closeModal()">Cancelar</button></div></form>`);
@@ -232,6 +234,8 @@
     e.preventDefault(); if (!guard()) return; const f = U.formData(e.target);
     const rec = { name: f.name.trim(), short_name: f.short_name || null, color: f.color, stadium_name: f.stadium_name || null, stadium_capacity: +f.stadium_capacity, crest_url: f.crest_url || null };
     try {
+      const image = await U.uploadMedia(f.stadium_file, 'stadiums');
+      rec.stadium_photo_url = image || f.stadium_photo_url || null;
       if (id) await q(sb().from('clubs').update(rec).eq('id', id));
       else { const c = await q(sb().from('clubs').insert(rec).select().single()); if (f.add && editingSeasonClubs() && S.season.status === 'draft') await A.addToSeason(c.id, +(f.tier || 1), true); }
       closeModal(); toast('Club guardado', 'ok'); await (editingSeasonClubs() ? refresh() : U.route());
@@ -309,11 +313,15 @@
       } else if (c.kind === 'cup') {
         if (c.status === 'finished') actions = `<span class="badge navy">Campeón: ${esc(club(c.champion_club_id)?.name || '?')}</span>`;
         else actions = `${ms.length ? `<span class="muted small">Ronda ${Math.max(...ms.map((m) => m.round))} · ${pending} pendientes</span>` : `<span class="muted small">${teams.length} equipos</span>`} <button onclick="A.cupRound('${c.id}')" ${pending > 0 ? 'disabled' : ''}>${ms.length ? 'Generar siguiente ronda' : 'Sortear primera ronda'}</button>${ms.length ? ` <button class="danger sm" onclick="A.resetComp('${c.id}')">Borrar llaves</button>` : ''}`;
+        if (!ms.length && c.status !== 'finished') actions += ` <button class="sm secondary" onclick="A.cupGroups('${c.id}')" ${teams.length!==16?'disabled':''}>Sortear 4 grupos (16 equipos)</button>`;
+        if (c.format?.groups && c.status !== 'finished' && !ms.some((m)=>m.stage!=='group')) actions += `<form class="row mt" onsubmit="A.neutralCapacity(event,'${c.id}')"><label>Capacidad del estadio neutral <input name="capacity" type="number" min="1" max="1000000" required value="${c.format.neutral_capacity||''}"></label><button type="submit" class="sm secondary">Guardar capacidad</button></form>`;
       } else if (c.kind === 'supercup') {
         if (c.status === 'finished') actions = `<span class="badge navy">Campeón: ${esc(club(c.champion_club_id)?.name || '?')}</span>`;
         else if (ms.length) actions = `<span class="muted small">${pending ? 'Partido pendiente' : 'Jugado'}</span> ${pending === 0 ? `<button onclick="A.cupRound('${c.id}')">Definir campeón</button>` : ''}`;
         else actions = `<button onclick="A.setupSupercup('${c.id}')">Armar Supercopa con los campeones</button>`;
       } else if (c.kind === 'promotion') actions = `<span class="muted small">${ms.length - pending}/${ms.length} jugados</span>${pending === 0 && ms.length ? ` <button onclick="A.finishPromotion('${c.id}')">Resolver promoción</button>` : ''}`;
+      if (c.format?.cancelled) actions='<span class="badge">Competencia anulada</span>';
+      else if (c.status!=='finished') actions+=` <button class="xs secondary" onclick="A.cancelCompetition('${c.id}')">Anular competencia</button>`;
       return `<div class="card"><div class="row between"><div><h3 style="margin:0">${esc(c.name)} ${statusBadge(c.status)}</h3><div class="muted small">${c.kind === 'league' ? (c.format?.rounds === 'single' ? 'Una rueda' : 'Ida y vuelta') + (c.relegate_direct ? ` · descienden ${c.relegate_direct}` : '') + (c.promote_direct ? ` · ascienden ${c.promote_direct}` : '') + (c.promotion_slots ? ` · promoción ${c.promotion_slots}` : '') : c.kind === 'cup' ? `${c.format?.legs === 2 ? 'Ida y vuelta' : 'Partido único'} · penales` : ''}</div></div><div class="row">${actions}</div></div></div>`;
     }).join('') + `<div class="card"><h3>Clásicos</h3><p class="muted small">Marcá rivalidades: esos partidos llevan insignia y pagan entradas con multiplicador de clásico.</p>${derbiesPanel()}</div>`;
   }
@@ -326,7 +334,7 @@
   A.unsetDerby = async (a, b) => { try { await q(sb().from('matches').update({ is_derby: false }).in('competition_id', S.competitions.map((c) => c.id)).or(`and(home_club_id.eq.${a},away_club_id.eq.${b}),and(home_club_id.eq.${b},away_club_id.eq.${a})`)); refresh(); } catch (x) { err(x); } };
   A.genLeague = (cid) => U.confirmDo('¿Generar el fixture? Se sortea el calendario.', async () => { const n = await rpc('generate_league_fixture', { p_competition: cid }); toast(`Fixture generado: ${n} fechas`, 'ok'); refresh(); });
   A.cupRound = (cid) => U.confirmDo('¿Generar la siguiente ronda?', async () => { const n = await rpc('generate_cup_round', { p_competition: cid }); toast(n ? `${n} llave(s) generadas` : 'Competencia finalizada: campeón definido', 'ok'); refresh(); });
-  A.resetComp = (cid) => { if (prompt('Se borran TODOS los partidos y resultados de esta competencia. Escribí BORRAR:') !== 'BORRAR') return; (async () => { try { await q(sb().from('matches').delete().eq('competition_id', cid)); await q(sb().from('competitions').update({ status: 'draft', champion_club_id: null, runnerup_club_id: null }).eq('id', cid)); await q(sb().from('competition_teams').update({ seed: null }).eq('competition_id', cid)); refresh(); } catch (x) { err(x); } })(); };
+  A.resetComp = (cid) => { if (prompt('Se borran TODOS los partidos y resultados de esta competencia. Escribí BORRAR:') !== 'BORRAR') return; (async () => { try { await q(sb().from('matches').delete().eq('competition_id', cid)); await q(sb().from('competitions').update({ status: 'draft', champion_club_id: null, runnerup_club_id: null }).eq('id', cid)); await q(sb().from('competition_teams').update({ seed: null, group_name: null }).eq('competition_id', cid)); refresh(); } catch (x) { err(x); } })(); };
   A.finishLeague = (cid) => U.confirmDo('¿Finalizar la liga? Se define campeón y subcampeón por la tabla.', async () => { const rows = standings(cid); await q(sb().from('competitions').update({ status: 'finished', champion_club_id: rows[0]?.club_id, runnerup_club_id: rows[1]?.club_id }).eq('id', cid)); toast(`Campeón: ${club(rows[0]?.club_id)?.name}`, 'ok'); refresh(); });
   A.setupSupercup = (cid) => U.confirmDo('¿Armar la Supercopa con el campeón de liga y el campeón de copa?', async () => {
     const L = S.competitions.find((c) => c.kind === 'league' && c.tier === 1), C = S.competitions.find((c) => c.kind === 'cup');
