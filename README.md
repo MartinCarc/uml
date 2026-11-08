@@ -238,3 +238,8 @@ Los logos visibles en el chat no se incorporaron como archivos locales; hasta su
 ### Formación y colores de fichas
 
 El nombre visible es **Formación** en los equipos, Mi equipo y partidos. Las fichas usan el color configurado en **Administrar clubes → Editar → Color**, con texto blanco o negro según contraste. Se conserva la ruta anterior y todos los titulares/suplentes guardados. Este cambio no necesita SQL ni migraciones nuevas.
+
+
+### Color secundario del equipo
+
+Aplicar `supabase/migrations/20261108_club_secondary_color.sql`. En **Administrar clubes → Editar** se configuran **Color principal** y **Color secundario**. Formación usa el primero como fondo de la ficha y el segundo como borde; el texto sigue ajustándose al contraste del fondo. El secundario empieza en blanco para conservar el aspecto de los clubes existentes. No se modifican el color principal ni las copias históricas de los clubes.

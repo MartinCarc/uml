@@ -223,7 +223,7 @@
     if (!guard()) return;
     const c = id ? (club(id) || (await q(sb().from('clubs').select('*').eq('id', id).single()))) : {};
     modal(`<h2>${id ? 'Editar club' : 'Nuevo club'}</h2><form onsubmit="A.saveClub(event,'${id || ''}')">
-      <div class="fields"><div><label>Nombre</label><input name="name" value="${esc(c.name || '')}" required></div><div><label>Abreviatura</label><input name="short_name" maxlength="4" value="${esc(c.short_name || '')}"></div><div><label>Color</label><input name="color" type="color" value="${esc(c.color || '#1F5FC4')}"></div></div>
+      <div class="fields"><div><label>Nombre</label><input name="name" value="${esc(c.name || '')}" required></div><div><label>Abreviatura</label><input name="short_name" maxlength="4" value="${esc(c.short_name || '')}"></div><div><label>Color principal</label><input name="color" type="color" value="${esc(c.color || '#1F5FC4')}"></div><div><label>Color secundario</label><input name="secondary_color" type="color" value="${esc(c.secondary_color || '#ffffff')}"></div></div>
       <div class="fields"><div><label>Estadio</label><input name="stadium_name" value="${esc(c.stadium_name || '')}"></div><div><label>Capacidad real</label><input name="stadium_capacity" type="number" min="1000" value="${c.stadium_capacity || 40000}" required></div></div>
       <div class="field"><label>Foto del estadio (JPG, PNG o WebP, hasta 5 MB)</label><input name="stadium_file" type="file" accept="image/jpeg,image/png,image/webp"></div><div class="field"><label>O enlace de foto del estadio</label><input name="stadium_photo_url" type="url" value="${esc(c.stadium_photo_url || '')}"></div>
       <div class="field"><label>Escudo (URL de imagen PNG)</label><input name="crest_url" type="url" value="${esc(c.crest_url || '')}" placeholder="https://…"><div class="help">La subida directa de escudos llega en la etapa de imágenes; por ahora pegá un link.</div></div>
@@ -232,7 +232,7 @@
   };
   A.saveClub = async (e, id) => {
     e.preventDefault(); if (!guard()) return; const f = U.formData(e.target);
-    const rec = { name: f.name.trim(), short_name: f.short_name || null, color: f.color, stadium_name: f.stadium_name || null, stadium_capacity: +f.stadium_capacity, crest_url: f.crest_url || null };
+    const rec = { name: f.name.trim(), short_name: f.short_name || null, color: f.color, secondary_color: f.secondary_color, stadium_name: f.stadium_name || null, stadium_capacity: +f.stadium_capacity, crest_url: f.crest_url || null };
     try {
       const image = await U.uploadMedia(f.stadium_file, 'stadiums');
       rec.stadium_photo_url = image || f.stadium_photo_url || null;

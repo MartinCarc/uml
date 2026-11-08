@@ -7,8 +7,8 @@
   const mark = () => { board.dirty = true; $('#tactics-status').textContent = 'Cambios sin guardar'; };
   const name = (id) => U.player(id)?.name || 'Jugador fuera del plantel';
   const allowed = (id) => squad(board.cid).some((p) => p.id === id);
-  function teamDiscColors(color) {
-    let hex = typeof color === 'string' && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(color) ? color : '#1F5FC4';
+  function teamDiscColors(color, fallback = '#1F5FC4') {
+    let hex = typeof color === 'string' && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(color) ? color : fallback;
     if (hex.length === 4) hex = '#' + [...hex.slice(1)].map((c) => c + c).join('');
     const luminance = [1,3,5].map((i) => parseInt(hex.slice(i,i+2),16) / 255)
       .map((c) => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4)
@@ -41,6 +41,7 @@
     const disc = teamDiscColors(club(cid).color);
     $('#tactics-pitch').style.setProperty('--team-disc-color', disc.color);
     $('#tactics-pitch').style.setProperty('--team-disc-ink', disc.ink);
+    $('#tactics-pitch').style.setProperty('--team-disc-secondary', teamDiscColors(club(cid).secondary_color, '#ffffff').color);
     render();
     if (board.edit) {
       $('#tactics-player').addEventListener('change', (e) => { const p = U.player(e.target.value); if (p) $('#tactics-position').value = p.position; });

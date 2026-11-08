@@ -1,0 +1,11 @@
+SEGUNDO COLOR DEL EQUIPO
+
+1. Ejecutá en Supabase como consulta nueva:
+   supabase/migrations/20261108_club_secondary_color.sql
+2. Subí el contenido descomprimido del ZIP a GitHub, conservando las carpetas.
+3. Administrar clubes → Editar: elegí Color principal y Color secundario.
+
+En Formación: principal = fondo de la ficha; secundario = borde.
+Las letras se ajustan a blanco/negro para que sean legibles.
+El secundario inicial es blanco. Se conservan el color principal, formaciones,
+suplentes y datos existentes. Las copias históricas no se modifican.
