@@ -229,3 +229,10 @@ html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !im
 .pes-ability-row dd { margin:0; flex:none; font-size:14px; }
 
 .grid.summary-stats { grid-template-columns:repeat(2,minmax(0,1fr)); width:356px; max-width:100%; min-width:0; margin-left:auto; }
+
+.pes-player-cards { margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+.pes-card-groups { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr)); gap:18px; }
+.pes-card-groups .pes-ability-group { min-width:0; margin-top:0; }
+.pes-card-list { list-style:none; margin:10px 0 0; padding:0; }
+.pes-card-list li { display:flex; align-items:baseline; gap:8px; padding:5px 0; font-size:13px; overflow-wrap:anywhere; }
+.pes-card-list .badge { flex:none; }
