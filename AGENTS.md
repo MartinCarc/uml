@@ -28,3 +28,5 @@
 - Los clubes tienen color principal y secundario, configurables por el administrador. En Formación el principal es el fondo de la ficha y el secundario es el borde. El secundario predeterminado es blanco; la posición conserva contraste con el fondo.
 
 - Las etiquetas de nombre bajo las fichas también usan fondo principal, borde secundario y texto según contraste del equipo, sin el azul UML.
+
+- Formación incluye capitán, penales, tiros libres, córners de izquierda/derecha e indicaciones de hasta 4000 caracteres. Los responsables son titulares, pueden repetir funciones y son opcionales. Al quitar un titular se limpian sus funciones. Guardar junto con titulares/suplentes; simuladores y visitantes solo consultan. Conservar notas al guardar desde versiones anteriores del cliente.

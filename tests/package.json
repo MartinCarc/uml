@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node finance.mjs && node season-continuity.mjs && node player-value.mjs && node sponsors.mjs && node sponsor-outcomes.mjs",
-    "test:browser": "python sponsors-browser.py && python competition-theme-browser.py"
+    "test": "node finance.mjs && node season-continuity.mjs && node player-value.mjs && node sponsors.mjs && node sponsor-outcomes.mjs && node formation-instructions.mjs",
+    "test:browser": "python sponsors-browser.py && python competition-theme-browser.py && python formation-browser.py"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.15"

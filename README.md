@@ -243,3 +243,14 @@ El nombre visible es **Formación** en los equipos, Mi equipo y partidos. Las fi
 ### Color secundario del equipo
 
 Aplicar `supabase/migrations/20261108_club_secondary_color.sql`. En **Administrar clubes → Editar** se configuran **Color principal** y **Color secundario**. Formación usa el primero como fondo de la ficha y el segundo como borde; el texto sigue ajustándose al contraste del fondo. El secundario empieza en blanco para conservar el aspecto de los clubes existentes. No se modifican el color principal ni las copias históricas de los clubes.
+
+
+### Capitán, pelota parada e indicaciones
+
+Aplicar la consulta nueva `supabase/migrations/20261108_formation_instructions.sql` y publicar los archivos actualizados. Conserva las formaciones, suplentes y colores actuales.
+
+En **Formación**, el DT o administrador puede elegir **capitán**, **penales**, **tiros libres**, **córners desde la izquierda** y **córners desde la derecha** entre los titulares. Un jugador puede cumplir varias funciones. Las elecciones son opcionales: al quitar a un titular se limpian las funciones que tenía asignadas.
+
+**Indicaciones para el simulador** admite hasta 4000 caracteres, con saltos de línea. Se pueden escribir cambios por minuto, variantes según el marcador o quién ejecuta una pelota parada si entra un suplente. Cualquiera de los botones **Guardar formación** publica titulares, banco, responsables e indicaciones juntos. Ante un error, los cambios quedan en pantalla para reintentar.
+
+El simulador entra desde **Partido → Formaciones de los equipos** y ve responsables e indicaciones de solo lectura. Se trata de la formación actual del equipo en esa temporada; no se guarda una copia por partido. Las temporadas cerradas no se editan. La consulta mantiene compatibles las llamadas anteriores: conserva indicaciones y funciones vigentes, quitando solo las funciones de titulares retirados de la formación.

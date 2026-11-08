@@ -2,7 +2,7 @@ import {PGlite} from '@electric-sql/pglite';
 import {readFileSync} from 'node:fs';
 export const root=new URL('../',import.meta.url);
 export const sql=p=>readFileSync(new URL(p,root),'utf8');
-export const migrations=['20261107_tactics.sql','20261107_tactics_bench.sql','20261107_ticket_income_fix.sql','20261107_season_balance_continuity.sql','20261107_unified_player_value.sql','20261108_cup_groups.sql','20261108_sponsors_and_stadium.sql','20261108_neutral_gate.sql','20261108_media_uploads.sql','20261108_competition_logos.sql'];
+export const migrations=['20261107_tactics.sql','20261107_tactics_bench.sql','20261107_ticket_income_fix.sql','20261107_season_balance_continuity.sql','20261107_unified_player_value.sql','20261108_cup_groups.sql','20261108_sponsors_and_stadium.sql','20261108_neutral_gate.sql','20261108_media_uploads.sql','20261108_competition_logos.sql','20261108_formation_instructions.sql'];
 export async function database(){
  const db=new PGlite();
  await db.exec(`create role anon;create role authenticated;create schema auth;create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create table auth.users(id uuid primary key,raw_user_meta_data jsonb,email text);create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text);alter table storage.objects enable row level security;grant usage on schema storage to authenticated;grant select,insert on storage.objects to authenticated;`);

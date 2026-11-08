@@ -1,0 +1,26 @@
+FORMACIÓN: CAPITÁN, PELOTA PARADA E INDICACIONES
+
+1. Supabase → SQL Editor → consulta nueva:
+   supabase/migrations/20261108_formation_instructions.sql
+   Ejecutá solo esta nueva consulta, no las anteriores ni el esquema completo.
+2. Subí el contenido descomprimido del ZIP a GitHub, conservando las carpetas.
+
+En Formación aparecerá el apartado Capitán y pelota parada:
+- Capitán.
+- Penales.
+- Tiros libres.
+- Córners desde la izquierda y desde la derecha.
+Se eligen entre los titulares. Un jugador puede tener varias funciones.
+Se puede dejar cualquiera sin asignar. Quitar un titular limpia sus funciones.
+
+En Indicaciones para el simulador podés escribir hasta 4000 caracteres:
+cambios por minuto, variantes según el resultado o nuevas responsabilidades
+cuando entre un suplente. Guardar formación publica todo junto.
+
+El simulador entra desde Partido → Formaciones de los equipos y consulta
+los responsables y las indicaciones sin poder editarlos, salvo que sea
+el DT de ese mismo equipo o administrador. Las temporadas cerradas no se editan.
+
+Se conserva la formación actual por equipo y temporada, sin crear una copia
+por partido. Se mantienen los titulares, suplentes, posiciones y colores.
+Esta entrega está probada localmente; falta aplicarla en Supabase y GitHub.

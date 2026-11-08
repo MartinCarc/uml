@@ -209,3 +209,5 @@ html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !im
 .competition-tab-logo .competition-placeholder { width:22px; height:22px; border-radius:4px; font-size:10px; }
 .competition-match-logo { display:flex; margin:0 auto 10px; width:60px; height:68px; }
 @media(max-width:640px) { .competition-heading { gap:10px; } .competition-head .competition-mark { width:46px; height:54px; } }
+
+.tactics-instructions { white-space:pre-wrap; overflow-wrap:anywhere; }

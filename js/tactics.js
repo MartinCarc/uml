@@ -2,6 +2,8 @@
 (() => {
   const { $, S, esc, POS, squad, club, st, isAdmin, rpc, toast, err, register, pageHead, opt } = U;
   let board = null;
+  const responsibilities = { captain:'Capitán', penalties:'Penales', free_kicks:'Tiros libres', corners_left:'Córners desde la izquierda', corners_right:'Córners desde la derecha' };
+  const clearRoles = (id) => Object.keys(board.roles).forEach((key) => { if (board.roles[key] === id) delete board.roles[key]; });
   const editable = (cid) => !!S.user && (isAdmin() || S.myClub === cid) && S.season.status !== 'closed' && !S.season.historical;
   const current = () => board && location.hash === board.hash && S.sid === board.sid;
   const mark = () => { board.dirty = true; $('#tactics-status').textContent = 'Cambios sin guardar'; };
@@ -30,12 +32,13 @@
       $('#app').innerHTML = pageHead('Formación', esc(club(cid).name)) + '<div class="alert warn">Falta habilitar la formación en la base de datos. El administrador debe aplicar el archivo 20261107_tactics.sql indicado en el README. Los datos actuales se conservan.</div>'; return;
     }
     team.tactics = data.tactics;
-    board = { cid, sid: S.sid, hash: location.hash, lineup: (team.tactics?.lineup || []).map((p) => ({ ...p })), bench: [...(team.tactics?.bench || [])], edit: editable(cid), dirty: false };
+    board = { cid, sid: S.sid, hash: location.hash, lineup: (team.tactics?.lineup || []).map((p) => ({ ...p })), bench: [...(team.tactics?.bench || [])], roles: { ...(team.tactics?.roles || {}) }, instructions: team.tactics?.instructions || '', edit: editable(cid), dirty: false };
     const saved = team.tactics?.updated_at;
     $('#app').innerHTML = pageHead('Formación', esc(club(cid).name), `<a class="btn secondary" href="#/s/${S.sid}/equipo/${cid}">Ver equipo</a>`) +
       `<div class="alert info">Ataque hacia arriba ↑. ${board.edit ? 'Agregá jugadores, elegí su posición y arrastrá las fichas. También podés mover la ficha seleccionada con las flechas del teclado. Guardá para publicar la formación.' : 'Formación publicada por el equipo.'} Se muestra la última formación guardada para esta temporada.</div>
-      <div class="tactics-layout"><div class="card"><div class="row between mb"><h3 style="margin:0">Campo de juego</h3><span class="badge" id="tactics-count"></span></div>
+      <div class="tactics-layout"><div><div class="card"><div class="row between mb"><h3 style="margin:0">Campo de juego</h3><span class="badge" id="tactics-count"></span></div>
       <div id="tactics-pitch" class="tactics-pitch" aria-label="Campo vertical. Ataque hacia arriba"><div class="tactics-lines" aria-hidden="true"><i class="tactics-half"></i><i class="tactics-circle"></i><i class="tactics-area top"></i><i class="tactics-area bottom"></i></div><div id="tactics-pieces"></div></div></div>
+      <div class="card"><h3>Capitán y pelota parada</h3><p class="muted small">Elegí entre los titulares. Un jugador puede cumplir varias funciones; también podés dejarlas sin asignar.</p><div id="tactics-responsibilities"></div><div class="hr"></div><h3>Indicaciones para el simulador</h3>${board.edit ? `<label class="sr-only" for="tactics-instructions">Indicaciones para el simulador</label><textarea id="tactics-instructions" rows="6" maxlength="4000" placeholder="Ej.: al minuto 60, si vamos perdiendo, ingresar a…">${esc(board.instructions)}</textarea><p class="muted small mt">Hasta 4000 caracteres. Podés indicar cambios, variantes y quién ejecuta si ingresa un suplente.</p><button id="tactics-save-instructions" type="button">Guardar formación</button>` : `<p class="tactics-instructions">${esc(board.instructions) || 'Sin indicaciones adicionales.'}</p>`}</div></div>
       <div class="card"><h3>${board.edit ? 'Armar alineación' : 'Alineación'}</h3>${board.edit ? `<form id="tactics-add" class="mb"><div class="field"><label for="tactics-player">Jugador</label><select id="tactics-player" required></select></div><div class="field"><label for="tactics-position">Posición en la formación</label><select id="tactics-position">${positions('MC')}</select></div><button type="submit">Agregar al campo</button></form>` : ''}
       <div class="hr"></div><div class="row between mb"><h3 style="margin:0">Banco de suplentes</h3><span class="badge" id="tactics-bench-count"></span></div>${board.edit ? '<form id="tactics-bench-add" class="mb"><div class="field"><label for="tactics-bench-player">Suplente</label><select id="tactics-bench-player" required></select></div><button type="submit">Agregar al banco</button></form>' : ''}<div id="tactics-bench"></div><div class="hr"></div><h3>Titulares</h3><div id="tactics-roster"></div><p class="muted small mt" id="tactics-status">${saved ? 'Formación guardada.' : 'Todavía no hay una formación guardada.'}</p>${board.edit ? '<button id="tactics-save" class="mt">Guardar formación</button>' : ''}</div></div>`;
     const disc = teamDiscColors(club(cid).color);
@@ -64,6 +67,8 @@
         board.bench.push(pid); render(); mark();
       });
       $('#tactics-save').addEventListener('click', save);
+      $('#tactics-save-instructions').addEventListener('click', save);
+      $('#tactics-instructions').addEventListener('input', (e) => { board.instructions = e.target.value; mark(); });
     }
   });
 
@@ -74,7 +79,14 @@
     $('#tactics-roster').innerHTML = lineup.map((p, i) => `<div class="tactics-row"><div><b>${esc(name(p.player_id))}</b>${!allowed(p.player_id) ? '<div class="sanc">Ya no pertenece al plantel</div>' : ''}${U.sancBadges(p.player_id)}</div>${edit ? `<label class="sr-only" for="tactics-pos-${i}">Posición de ${esc(name(p.player_id))}</label><select id="tactics-pos-${i}" data-position="${i}">${positions(p.position)}</select><button type="button" class="xs danger" data-remove="${i}" aria-label="Quitar ${esc(name(p.player_id))}">Quitar</button>` : `<span class="badge">${esc(p.position)}</span>`}</div>`).join('') || '<p class="muted small">Sin jugadores en el campo.</p>';
     $('#tactics-bench-count').textContent = `${bench.length}/12`;
     $('#tactics-bench').innerHTML = bench.map((id, i) => `<div class="tactics-row"><span class="badge">${esc(U.player(id)?.position || '—')}</span><div><b>${esc(name(id))}</b>${!allowed(id) ? '<div class="sanc">Ya no pertenece al plantel</div>' : ''}${U.sancBadges(id)}</div>${edit ? `<button type="button" class="xs danger" data-bench-remove="${i}" aria-label="Quitar del banco a ${esc(name(id))}">Quitar</button>` : ''}</div>`).join('') || '<p class="muted small">Sin suplentes seleccionados.</p>';
+    $('#tactics-responsibilities').innerHTML = Object.entries(responsibilities).map(([key,label]) => {
+      const selected = board.roles[key] || '';
+      const candidates = lineup.map((p) => opt(p.player_id, name(p.player_id), selected)).join('');
+      const missing = selected && !lineup.some((p) => p.player_id === selected) ? opt(selected, name(selected) + ' (ya no es titular)', selected) : '';
+      return edit ? `<div class="field"><label for="tactics-role-${key}">${label}</label><select id="tactics-role-${key}" data-role="${key}"><option value="">Sin asignar</option>${missing}${candidates}</select></div>` : `<div class="list-item"><b>${label}</b><span>${selected ? esc(name(selected)) : 'Sin asignar'}</span></div>`;
+    }).join('');
     if (!edit) return;
+    document.querySelectorAll('[data-role]').forEach((el) => el.addEventListener('change', () => { board.roles[el.dataset.role] = el.value || null; mark(); }));
     document.querySelectorAll('[data-bench-remove]').forEach((el) => el.addEventListener('click', () => { bench.splice(+el.dataset.benchRemove, 1); render(); mark(); }));
     const available = squad(board.cid).filter((p) => !lineup.some((t) => t.player_id === p.id) && !bench.includes(p.id));
     $('#tactics-player').innerHTML = '<option value="">Elegí un jugador</option>' + available.map((p) => opt(p.id, `${p.name} · ${p.position}`, '')).join('');
@@ -82,7 +94,7 @@
     $('#tactics-bench-add button').disabled = bench.length >= 12 || !available.length;
     $('#tactics-add button').disabled = lineup.length >= 11 || !available.length;
     document.querySelectorAll('[data-position]').forEach((el) => el.addEventListener('change', () => { lineup[+el.dataset.position].position = el.value; render(); mark(); }));
-    document.querySelectorAll('[data-remove]').forEach((el) => el.addEventListener('click', () => { lineup.splice(+el.dataset.remove, 1); render(); mark(); }));
+    document.querySelectorAll('[data-remove]').forEach((el) => el.addEventListener('click', () => { const [removed] = lineup.splice(+el.dataset.remove, 1); clearRoles(removed.player_id); render(); mark(); }));
     document.querySelectorAll('.tactics-piece').forEach((el) => {
       el.addEventListener('pointerdown', (e) => {
         if (e.button !== 0) return;
@@ -106,20 +118,20 @@
   async function save() {
     if (!current() || !editable(board.cid)) return;
     if (board.lineup.some((p) => !allowed(p.player_id)) || board.bench.some((id) => !allowed(id))) return toast('Quitá los jugadores que ya no pertenecen al plantel.', 'error');
-    const button = $('#tactics-save'), saving = board;
-    const lineup = saving.lineup.map((p) => ({ ...p })), bench = [...saving.bench];
-    button.disabled = true; button.textContent = 'Guardando…';
+    const buttons = [$('#tactics-save'), $('#tactics-save-instructions')], saving = board;
+    const lineup = saving.lineup.map((p) => ({ ...p })), bench = [...saving.bench], roles = { ...saving.roles }, instructions = saving.instructions;
+    buttons.forEach((button) => { button.disabled = true; button.textContent = 'Guardando…'; });
     try {
-      await rpc('save_tactics', { p_season: saving.sid, p_club: saving.cid, p_lineup: lineup, p_bench: bench });
+      await rpc('save_tactics', { p_season: saving.sid, p_club: saving.cid, p_lineup: lineup, p_bench: bench, p_roles: roles, p_instructions: instructions });
       // Actualizar solo el equipo guardado; no perder los cambios hechos durante la petición.
-      if (S.sid === saving.sid) { const team = st(saving.cid); if (team) team.tactics = { lineup, bench, updated_at: new Date().toISOString() }; }
+      if (S.sid === saving.sid) { const team = st(saving.cid); if (team) team.tactics = { lineup, bench, roles, instructions, updated_at: new Date().toISOString() }; }
       if (board === saving && current()) {
-        const changed = JSON.stringify(saving.lineup) !== JSON.stringify(lineup) || JSON.stringify(saving.bench) !== JSON.stringify(bench);
+        const changed = JSON.stringify(saving.lineup) !== JSON.stringify(lineup) || JSON.stringify(saving.bench) !== JSON.stringify(bench) || JSON.stringify(saving.roles) !== JSON.stringify(roles) || saving.instructions !== instructions;
         saving.dirty = changed; $('#tactics-status').textContent = changed ? 'Hay cambios nuevos sin guardar.' : 'Formación guardada y publicada.';
         toast('Formación guardada', 'ok');
       }
     } catch (x) { if (board === saving && current()) { $('#tactics-status').textContent = 'No se pudo guardar. Tus cambios siguen en pantalla.'; err(x); } }
-    finally { if (board === saving && current()) { button.disabled = false; button.textContent = 'Guardar formación'; } }
+    finally { if (board === saving && current()) { buttons.forEach((button) => { button.disabled = false; button.textContent = 'Guardar formación'; }); } }
   }
   window.addEventListener('beforeunload', (e) => { if (current() && board.dirty) { e.preventDefault(); e.returnValue = ''; } });
 })();

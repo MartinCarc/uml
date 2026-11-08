@@ -12,3 +12,5 @@ Sponsors y copa: `npm test` también cubre contratos por división, pagos, cierr
 Para la interfaz: `python sponsors-browser.py` desde esta carpeta. Requiere Python con Playwright y Chromium (o Playwright Chromium instalado); se puede indicar el ejecutable con `UML_CHROMIUM`. El navegador utiliza un Supabase simulado, sin conexiones a producción. Verifica elección, permisos, cargas de imágenes, diseño móvil, tablas de grupos y penales.
 
 `python competition-theme-browser.py` comprueba cinco paletas, contraste de los colores principales, cambios de competencia, partidos/rankings, restauración del tema UML, carga del logo, imagen sin recortar, fallback y ausencia de desbordamiento en celular. Usa datos simulados y no los logos originales del usuario.
+
+`node formation-instructions.mjs` comprueba persistencia, permisos, responsables titulares, texto, compatibilidad y temporadas cerradas. `python formation-browser.py` comprueba el editor, el guardado conjunto, la limpieza de funciones al quitar jugadores, retención tras un error, texto seguro, consulta del simulador y diseño móvil.

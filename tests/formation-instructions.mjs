@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import {database,seed,sql} from './sponsors-support.mjs';
+const db=await database(),{sid,clubs}=await seed(db);
+const uid=(await db.query("insert into auth.users(id,email,raw_user_meta_data) values(gen_random_uuid(),'dt-formacion@prueba.local','{}') returning id")).rows[0].id;
+await db.query("select set_config('test.uid',$1,false)",[uid]);
+await db.query('update season_teams set manager_id=$1 where season_id=$2 and club_id=$3',[uid,sid,clubs[0]]);
+const players=[];
+for(let i=0;i<4;i++)players.push((await db.query("insert into players(name,club_id,age,position) values($1,$2,22,'MC') returning id",['Jugador '+i,i===3?clubs[1]:clubs[0]])).rows[0].id);
+const lineup=[{player_id:players[0],position:'ARQ',x:50,y:86},{player_id:players[1],position:'DC',x:50,y:20}],bench=[players[2]];
+const read=async()=>(await db.query('select tactics from season_teams where season_id=$1 and club_id=$2',[sid,clubs[0]])).rows[0].tactics;
+const save=async(roles,notes,ids=lineup)=>db.query('select save_tactics($1,$2,$3::jsonb,$4::jsonb,$5::jsonb,$6)',[sid,clubs[0],JSON.stringify(ids),JSON.stringify(bench),JSON.stringify(roles),notes]);
+// Previously saved boards without the new fields still load and save.
+await db.query('select save_tactics($1,$2,$3::jsonb,$4::jsonb)',[sid,clubs[0],JSON.stringify(lineup),JSON.stringify(bench)]);
+assert.deepEqual((await read()).roles,{});assert.equal((await read()).instructions,'');
+await db.exec("select set_config('test.admin','false',false)");
+const roles={captain:players[0],penalties:players[1],free_kicks:players[1],corners_left:players[1],corners_right:players[0]};
+const notes='Minuto 60: ingresar al suplente.\nSi vamos ganando, mantener la formación. <texto literal>';
+await save(roles,notes);
+let stored=await read();assert.deepEqual(stored.roles,roles);assert.equal(stored.instructions,notes);assert.deepEqual(stored.lineup,lineup);assert.deepEqual(stored.bench,bench);
+await db.exec(sql('supabase/migrations/20261108_formation_instructions.sql'));assert.equal((await read()).instructions,notes);
+await assert.rejects(()=>save({captain:players[2]},notes),/titulares/);
+await assert.rejects(()=>save({captain:players[3]},notes),/titulares/);
+await assert.rejects(()=>save({unknown:players[0]},notes),/no válida/);
+await assert.rejects(()=>save({captain:true},notes),/titular/);
+await assert.rejects(()=>save([],notes),/responsables/);
+await assert.rejects(()=>save(roles,'x'.repeat(4001)),/4000/);
+assert.equal((await read()).instructions,notes);assert.deepEqual((await read()).roles,roles);
+// Old browser versions retain notes/roles and clear only roles of removed starters.
+await db.query('select save_tactics($1,$2,$3::jsonb,$4::jsonb)',[sid,clubs[0],JSON.stringify(lineup.slice(1)),JSON.stringify(bench)]);
+stored=await read();assert.equal(stored.instructions,notes);assert.equal(stored.roles.captain,undefined);assert.equal(stored.roles.penalties,players[1]);
+await save({},'',lineup);assert.deepEqual((await read()).roles,{});assert.equal((await read()).instructions,'');
+await db.exec("select set_config('test.uid','',false)");await assert.rejects(()=>save(roles,notes),/Ingresá/);
+await db.query("select set_config('test.uid',$1,false)",[players[3]]);await assert.rejects(()=>save(roles,notes),/DT/);
+await db.exec("select set_config('test.admin','true',false)");await save(roles,notes);
+await db.query("update seasons set status='closed' where id=$1",[sid]);await assert.rejects(()=>save(roles,notes),/temporada/);
+console.log('PASS: existing formations, DT/admin permissions, persistent roles+notes, optional/duplicate duties, starters-only validation, text limit/atomic failure, old-client preservation and role cleanup, migration rerun, anonymous/foreign/closed rejection.');
+await db.close();
