@@ -1,0 +1,25 @@
+UML — HABILIDADES Y MEDIAS CON COLORES PES
+
+INSTALACIÓN EN GITHUB
+Subí y reemplazá estos archivos respetando sus carpetas:
+- styles.css
+- js/core.js
+- js/pages.js
+- js/market.js
+- js/admin.js
+- AGENTS.md (indicaciones del proyecto)
+
+Esperá que Vercel publique el cambio. Luego recargá la web con Ctrl+F5.
+No hay consultas nuevas para Supabase. No reemplaces las carpetas completas: solo los archivos incluidos.
+
+RESULTADO
+La ficha del jugador muestra las habilidades como lista vertical, con valor a la derecha. Grupos en el orden del editor: Técnica, Velocidad, Físico y Resistencia. Los nombres de atributos permanecen en español.
+
+Escala para los números de habilidades y para la media:
+0–74 negro; 75–79 verde; 80–89 amarillo; 90–94 naranja; 95–99 rojo.
+Las medias tienen la misma escala en ficha, planteles, mercado, gimnasio y listados del administrador. Los colores no cambian al navegar por otra competencia. Las casillas claras permiten leer los números también en las cabeceras oscuras.
+
+Los jugadores sin habilidades siguen mostrando el aviso actual. No se inventan atributos ni se alteran medias, valores u otros datos. Se conservan atributos adicionales fuera del esquema bajo Otros atributos.
+
+VERIFICACIÓN
+Pruebas de navegador: grupos y orden de 23 atributos, extremos de los cinco rangos, colores en todos los temas de competencias, media en ficha/plantel/mercado, valores ausentes, atributos anteriores, texto seguro y vista de 320/390 px. Pruebas anteriores de sponsors, temas y formación también correctas.

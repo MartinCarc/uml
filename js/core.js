@@ -6,6 +6,13 @@ window.U = (() => {
   const CUR = CFG.CURRENCY || '$';
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // PES 2013: the same scale for abilities and overall, independent of competition colors.
+  function rating(value) {
+    const n = typeof value === 'number' || (typeof value === 'string' && value.trim() !== '') ? Number(value) : NaN;
+    if (!Number.isInteger(n) || n < 0 || n > 99) return '<span class="rating-missing">—</span>';
+    const band = n >= 95 ? 'red' : n >= 90 ? 'orange' : n >= 80 ? 'yellow' : n >= 75 ? 'green' : 'black';
+    return `<span class="pes-rating pes-rating--${band}">${n}</span>`;
+  }
   const fmt = (n) => CUR + ' ' + Number(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 });
   const fmtM = (n) => { n = Number(n || 0); return Math.abs(n) >= 1e6 ? (n / 1e6).toLocaleString('es-AR', { maximumFractionDigits: 1 }) + ' M' : n.toLocaleString('es-AR'); };
   const date = (d) => d ? new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : '';
@@ -167,7 +174,7 @@ window.U = (() => {
     } catch (e) { U.applyCompetitionTheme?.(null); err(e); app.innerHTML = `<div class="card"><h2>Error</h2><p>${esc(e.message)}</p><p><a href="#/">Volver al inicio</a></p></div>`; }
   }
 
-  return { CFG, CUR, $, esc, fmt, fmtM, date, datetime, POS, POS_ORDER, GROUP, STAGE, EVENT, SANC, S, setClient, client, toast, modal, closeModal, err, isAdmin, isSim, rpc, confirmDo, formData, opt,
+  return { CFG, CUR, $, esc, rating, fmt, fmtM, date, datetime, POS, POS_ORDER, GROUP, STAGE, EVENT, SANC, S, setClient, client, toast, modal, closeModal, err, isAdmin, isSim, rpc, confirmDo, formData, opt,
     club, player, comp, st, profile, managerName, compClubs, squad, playerSanctions, cfg, crest, clubLabel, statusBadge, sancBadges, pageHead, standings, matchGoals, tieWinner,
     loadProfile, loadProfiles, loadSettings, loadSeasons, loadSeason, refresh, register, renderNav, route };
 })();

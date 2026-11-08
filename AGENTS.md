@@ -30,3 +30,9 @@
 - Las etiquetas de nombre bajo las fichas también usan fondo principal, borde secundario y texto según contraste del equipo, sin el azul UML.
 
 - Formación incluye capitán, penales, tiros libres, córners de izquierda/derecha e indicaciones de hasta 4000 caracteres. Los responsables son titulares, pueden repetir funciones y son opcionales. Al quitar un titular se limpian sus funciones. Guardar junto con titulares/suplentes; simuladores y visitantes solo consultan. Conservar notas al guardar desde versiones anteriores del cliente.
+
+- Juego confirmado: PES 2013. La fuente de habilidades será el option file o los archivos del parche del usuario. Identificar la plataforma y analizar esos archivos antes de definir el importador; conservar jugadores existentes y no reemplazar sus datos por una base histórica genérica de internet.
+
+- Prueba PES 2013 Fulham: el EDIT.bin.backup correcto contiene los 25 jugadores en el mismo bloque de plantel. Se cotejaron los 23 atributos numéricos de Bernd Leno con la captura del editor. La migración 20261108_fulham_pes13_abilities.sql carga únicamente players.stats para los UUID existentes; no cambia media, valor, edad, posición ni estadísticas de partidos. Se cancela de forma atómica si cambió la identidad/equipo/estado o hay atributos diferentes ya cargados. Las tarjetas de estilo/habilidades especiales y otros campos aún no se importan. No considerar ejecutada en producción hasta que el usuario lo confirme.
+
+- Habilidades PES: mostrar una lista vertical con grupos y orden del editor (Técnica, Velocidad, Físico, Resistencia). Colorear atributos y medias con la misma escala fija: 0–74 negro, 75–79 verde, 80–89 amarillo, 90–94 naranja, 95–99 rojo. Mantener números visibles sobre superficies claras también en cabeceras oscuras y en temas de competencias. No cambiar datos ni medias al aplicar estos estilos.

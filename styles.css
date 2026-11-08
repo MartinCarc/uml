@@ -211,3 +211,19 @@ html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !im
 @media(max-width:640px) { .competition-heading { gap:10px; } .competition-head .competition-mark { width:46px; height:54px; } }
 
 .tactics-instructions { white-space:pre-wrap; overflow-wrap:anywhere; }
+
+/* Fixed PES numeric scale; white surface keeps low values readable on navy cards. */
+.pes-rating { display:inline-block; min-width:2.1em; padding:2px 5px; border:1px solid #d5dce6; border-radius:4px; background:#fff; font-weight:800; font-variant-numeric:tabular-nums; text-align:center; line-height:1.2; vertical-align:baseline; }
+.pes-rating--black { color:#000; }
+.pes-rating--green { color:#15803d; }
+.pes-rating--yellow { color:#a67c00; }
+.pes-rating--orange { color:#c45100; }
+.pes-rating--red { color:#dc2626; }
+.rating-missing { color:var(--muted); }
+.pes-abilities { max-width:380px; }
+.pes-ability-group + .pes-ability-group { margin-top:16px; }
+.pes-ability-group h4 { margin:0 0 7px; padding-bottom:5px; border-bottom:1px solid var(--line); font-size:13px; color:var(--muted); font-weight:600; }
+.pes-ability-group dl { margin:0; }
+.pes-ability-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:3px 0; }
+.pes-ability-row dt { font-size:13px; overflow-wrap:anywhere; }
+.pes-ability-row dd { margin:0; flex:none; font-size:14px; }
