@@ -227,3 +227,5 @@ html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !im
 .pes-ability-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:3px 0; }
 .pes-ability-row dt { font-size:13px; overflow-wrap:anywhere; }
 .pes-ability-row dd { margin:0; flex:none; font-size:14px; }
+
+.grid.summary-stats { grid-template-columns:repeat(2,minmax(0,1fr)); width:356px; max-width:100%; min-width:0; margin-left:auto; }
