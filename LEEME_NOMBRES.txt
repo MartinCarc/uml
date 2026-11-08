@@ -1,0 +1,1 @@
+Subí styles.css y AGENTS.md a la raíz del repositorio de GitHub, reemplazando los existentes. No hace falta ejecutar SQL. Las etiquetas de los nombres usan los colores del equipo y el mismo contraste de las fichas.

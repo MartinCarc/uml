@@ -26,3 +26,5 @@
 - El nombre visible del editor táctico es Formación. Las fichas usan el color configurado del club, con letras blancas/negras según contraste. Conservar la ruta interna pizarra y las formaciones guardadas.
 
 - Los clubes tienen color principal y secundario, configurables por el administrador. En Formación el principal es el fondo de la ficha y el secundario es el borde. El secundario predeterminado es blanco; la posición conserva contraste con el fondo.
+
+- Las etiquetas de nombre bajo las fichas también usan fondo principal, borde secundario y texto según contraste del equipo, sin el azul UML.
