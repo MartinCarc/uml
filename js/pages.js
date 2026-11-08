@@ -411,7 +411,7 @@
       <div class="grid c2">
         <div class="card"><h3>Temporada</h3><div class="grid c4"><div class="stat"><div class="v">${n('yellow') + n('second_yellow')}</div><div class="l">Amarillas</div></div><div class="stat"><div class="v">${n('red') + n('second_yellow')}</div><div class="l">Rojas</div></div><div class="stat"><div class="v">${n('injury_minor') + n('injury_major')}</div><div class="l">Lesiones</div></div><div class="stat"><div class="v">${trainings.length}</div><div class="l">Entrenamientos</div></div></div>
           ${p.loan_from_club_id ? `<div class="mt small muted">Cedido por ${esc(club(p.loan_from_club_id)?.name)}</div>` : ''}</div>
-        <div class="card"><h3>Habilidades</h3>${stats}<div class="pes-player-cards"><h3>Habilidades especiales</h3>${playerCards(p.pes2013_cards)}</div></div>
+        <div class="card"><h3>Habilidades</h3>${stats}<div class="pes-player-cards"><h3>Tarjetas especiales</h3>${playerCards(p.pes2013_cards)}</div></div>
       </div>`;
   });
 

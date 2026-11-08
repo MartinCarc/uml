@@ -43,4 +43,4 @@
 
 - En la ficha del jugador, mostrar el Valor destacado en la cabecera, debajo de la línea de posición/edad/equipo. No duplicarlo en el bloque Temporada. Mantener la información de cesión y la cabecera de indicadores 2×2.
 
-- La sección de tarjetas se titula Habilidades especiales. Conservar los grupos Estilos de juego y Habilidades especiales, sin subtítulos en inglés. Traducir los nombres de las 44 tarjetas al español y conservar los códigos P/S dentro de sus recuadros; por ejemplo, P01 · Número 10 clásico. Los códigos guardados y la importación no cambian.
+- La sección de tarjetas se titula Tarjetas especiales. Conservar los grupos Estilos de juego y Habilidades especiales, sin subtítulos en inglés. Traducir los nombres de las 44 tarjetas al español y conservar los códigos P/S dentro de sus recuadros; por ejemplo, P01 · Número 10 clásico. Los códigos guardados y la importación no cambian.
