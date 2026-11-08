@@ -346,11 +346,11 @@
     const stats = playerAbilities(p.stats);
     $('#app').innerHTML = `
       <div class="card navy"><div class="row" style="gap:18px"><span class="avatar" style="width:84px;height:84px;font-size:30px;border:3px solid #fff">${p.photo_url ? `<img src="${esc(p.photo_url)}">` : esc(p.name.slice(0, 1))}</span>
-        <div><h1 style="margin:0">${p.number ? `<span style="color:#8FB0EE">${p.number}</span> ` : ''}${esc(p.name)}</h1><div class="muted">${POS[p.position]} · ${p.age} años${p.retired ? ' · Retirado' : p.club_id ? ' · ' + esc(club(p.club_id)?.name || '') : ' · Agente libre'}</div><div class="mt">${sancBadges(pid)}</div></div>
+        <div><h1 style="margin:0">${p.number ? `<span style="color:#8FB0EE">${p.number}</span> ` : ''}${esc(p.name)}</h1><div class="muted">${POS[p.position]} · ${p.age} años${p.retired ? ' · Retirado' : p.club_id ? ' · ' + esc(club(p.club_id)?.name || '') : ' · Agente libre'}</div><div class="mt" style="font-size:18px">Valor: <b>${p.value != null ? fmtM(p.value) : '—'}</b></div><div class="mt">${sancBadges(pid)}</div></div>
         <div class="grid summary-stats"><div class="stat"><div class="v">${U.rating(p.overall)}</div><div class="l">Media</div></div><div class="stat"><div class="v">${n('goal')}</div><div class="l">Goles</div></div><div class="stat"><div class="v">${assists}</div><div class="l">Asistencias</div></div><div class="stat"><div class="v">${p.position === 'ARQ' ? saves : mvp}</div><div class="l">${p.position === 'ARQ' ? 'Atajadas' : 'MVP'}</div></div></div></div></div>
       <div class="grid c2">
         <div class="card"><h3>Temporada</h3><div class="grid c4"><div class="stat"><div class="v">${n('yellow') + n('second_yellow')}</div><div class="l">Amarillas</div></div><div class="stat"><div class="v">${n('red') + n('second_yellow')}</div><div class="l">Rojas</div></div><div class="stat"><div class="v">${n('injury_minor') + n('injury_major')}</div><div class="l">Lesiones</div></div><div class="stat"><div class="v">${trainings.length}</div><div class="l">Entrenamientos</div></div></div>
-          <div class="mt small muted">Valor: <b>${fmtM(p.value)}</b>${p.loan_from_club_id ? ` · Cedido por ${esc(club(p.loan_from_club_id)?.name)}` : ''}</div></div>
+          ${p.loan_from_club_id ? `<div class="mt small muted">Cedido por ${esc(club(p.loan_from_club_id)?.name)}</div>` : ''}</div>
         <div class="card"><h3>Habilidades</h3>${stats}</div>
       </div>`;
   });

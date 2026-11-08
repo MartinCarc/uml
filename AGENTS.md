@@ -38,3 +38,7 @@
 - Habilidades PES: mostrar una lista vertical con grupos y orden del editor (Técnica, Velocidad, Físico, Resistencia). Colorear atributos y medias con la misma escala fija: 0–74 negro, 75–79 verde, 80–89 amarillo, 90–94 naranja, 95–99 rojo. Mantener números visibles sobre superficies claras también en cabeceras oscuras y en temas de competencias. No cambiar datos ni medias al aplicar estos estilos.
 
 - Los cuatro indicadores de cabecera de la ficha del jugador (Media, Goles, Asistencias y Atajadas/MVP) se muestran en dos columnas y dos filas, también en móvil. La lista vertical corresponde únicamente a las habilidades.
+
+- Tarjetas PES 2013: ficha preparada con dos grupos (Estilos de juego/P y Habilidades especiales/S), códigos y nombres del editor. Solo mostrar tarjetas asignadas, ordenadas y sin duplicados. Campo players.pes2013_cards separado de stats: NULL = pendiente de cargar; arrays vacíos = sin tarjetas. La migración 20261108_pes13_cards.sql solo prepara el campo y valida P01–P18/S01–S26; NO importa ni asigna tarjetas. La lectura completa de bits del EDIT para tarjetas sigue sin validarse; solicitar CSV exportado desde el editor del usuario antes de generar la carga real. No extrapolar el mapa incompleto de PES 2012 ni afirmar que las tarjetas del Fulham ya fueron importadas.
+
+- En la ficha del jugador, mostrar el Valor destacado en la cabecera, debajo de la línea de posición/edad/equipo. No duplicarlo en el bloque Temporada. Mantener la información de cesión y la cabecera de indicadores 2×2.
