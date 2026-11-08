@@ -1,0 +1,11 @@
+FORMACIÓN Y COLORES DE EQUIPO
+
+Descomprimí el ZIP y subí su contenido a GitHub, conservando las carpetas.
+No hace falta ejecutar ninguna consulta nueva en Supabase.
+
+El nombre visible cambia de Pizarra táctica a Formación, también en botones y partidos.
+Las fichas usan el Color configurado en Administrar clubes → Editar → Color.
+Las letras se ajustan a blanco o negro para que se lean sobre ese color.
+
+Se conservan los enlaces existentes, titulares, suplentes y posiciones guardadas.
+Esta entrega está preparada y comprobada localmente; falta subirla a GitHub.

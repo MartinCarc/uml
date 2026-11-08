@@ -233,3 +233,8 @@ Las tablas, fixtures, partidos y rankings filtrados usan la identidad de la comp
 Para cargar los originales, aplicar **únicamente la nueva migración** `supabase/migrations/20261108_competition_logos.sql` después de la migración de imágenes del paquete anterior. Luego **Admin → Competencias → Logo de la competencia**: subir PNG/JPG/WebP (hasta 5 MB) o pegar un enlace y guardar. Los archivos se muestran completos y sin recolorear. Solo administradores pueden subirlos. No se cambian resultados, contratos ni importes. Las competencias cerradas conservan su imagen.
 
 Los logos visibles en el chat no se incorporaron como archivos locales; hasta subir cada original, se muestra una abreviatura de la competencia. También se admite `LIGA_CONFIG.COMPETITION_LOGOS` como mapa opcional de enlaces por clave `premier`, `championship`, `cup`, `supercup` y `promotion`; el logo guardado en la competencia tiene prioridad.
+
+
+### Formación y colores de fichas
+
+El nombre visible es **Formación** en los equipos, Mi equipo y partidos. Las fichas usan el color configurado en **Administrar clubes → Editar → Color**, con texto blanco o negro según contraste. Se conserva la ruta anterior y todos los titulares/suplentes guardados. Este cambio no necesita SQL ni migraciones nuevas.

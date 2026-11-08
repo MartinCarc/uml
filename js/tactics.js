@@ -1,4 +1,4 @@
-/* Pizarra vertical: una alineación publicada por equipo y temporada. */
+/* Formación vertical: una alineación publicada por equipo y temporada. */
 (() => {
   const { $, S, esc, POS, squad, club, st, isAdmin, rpc, toast, err, register, pageHead, opt } = U;
   let board = null;
@@ -7,28 +7,40 @@
   const mark = () => { board.dirty = true; $('#tactics-status').textContent = 'Cambios sin guardar'; };
   const name = (id) => U.player(id)?.name || 'Jugador fuera del plantel';
   const allowed = (id) => squad(board.cid).some((p) => p.id === id);
+  function teamDiscColors(color) {
+    let hex = typeof color === 'string' && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(color) ? color : '#1F5FC4';
+    if (hex.length === 4) hex = '#' + [...hex.slice(1)].map((c) => c + c).join('');
+    const luminance = [1,3,5].map((i) => parseInt(hex.slice(i,i+2),16) / 255)
+      .map((c) => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4)
+      .reduce((sum,c,i) => sum + c * [.2126,.7152,.0722][i], 0);
+    return { color:hex, ink:1.05 / (luminance + .05) >= (luminance + .05) / .05 ? '#ffffff' : '#000000' };
+  }
+
   const positions = (selected) => Object.entries(POS).map(([k, v]) => opt(k, `${k} · ${v}`, selected)).join('');
 
   register('pizarra', async (cid) => {
     const team = st(cid);
     if (!team || !club(cid)) { $('#app').innerHTML = '<div class="empty">Equipo inexistente en esta temporada.</div>'; return; }
     const routeHash = location.hash, sid = S.sid;
-    $('#app').innerHTML = '<div class="loading">Cargando pizarra…</div>';
+    $('#app').innerHTML = '<div class="loading">Cargando formación…</div>';
     const { data, error } = await U.client().from('season_teams').select('*').eq('season_id', sid).eq('club_id', cid).single();
     if (location.hash !== routeHash || S.sid !== sid) return;
-    if (error) { $('#app').innerHTML = '<div class="empty">No se pudo cargar la pizarra. Volvé a intentarlo.</div>'; err(error); return; }
+    if (error) { $('#app').innerHTML = '<div class="empty">No se pudo cargar la formación. Volvé a intentarlo.</div>'; err(error); return; }
     if (!data || !Object.prototype.hasOwnProperty.call(data, 'tactics')) {
-      $('#app').innerHTML = pageHead('Pizarra táctica', esc(club(cid).name)) + '<div class="alert warn">Falta habilitar la pizarra en la base de datos. El administrador debe aplicar el archivo 20261107_tactics.sql indicado en el README. Los datos actuales se conservan.</div>'; return;
+      $('#app').innerHTML = pageHead('Formación', esc(club(cid).name)) + '<div class="alert warn">Falta habilitar la formación en la base de datos. El administrador debe aplicar el archivo 20261107_tactics.sql indicado en el README. Los datos actuales se conservan.</div>'; return;
     }
     team.tactics = data.tactics;
     board = { cid, sid: S.sid, hash: location.hash, lineup: (team.tactics?.lineup || []).map((p) => ({ ...p })), bench: [...(team.tactics?.bench || [])], edit: editable(cid), dirty: false };
     const saved = team.tactics?.updated_at;
-    $('#app').innerHTML = pageHead('Pizarra táctica', esc(club(cid).name), `<a class="btn secondary" href="#/s/${S.sid}/equipo/${cid}">Ver equipo</a>`) +
+    $('#app').innerHTML = pageHead('Formación', esc(club(cid).name), `<a class="btn secondary" href="#/s/${S.sid}/equipo/${cid}">Ver equipo</a>`) +
       `<div class="alert info">Ataque hacia arriba ↑. ${board.edit ? 'Agregá jugadores, elegí su posición y arrastrá las fichas. También podés mover la ficha seleccionada con las flechas del teclado. Guardá para publicar la formación.' : 'Formación publicada por el equipo.'} Se muestra la última formación guardada para esta temporada.</div>
       <div class="tactics-layout"><div class="card"><div class="row between mb"><h3 style="margin:0">Campo de juego</h3><span class="badge" id="tactics-count"></span></div>
       <div id="tactics-pitch" class="tactics-pitch" aria-label="Campo vertical. Ataque hacia arriba"><div class="tactics-lines" aria-hidden="true"><i class="tactics-half"></i><i class="tactics-circle"></i><i class="tactics-area top"></i><i class="tactics-area bottom"></i></div><div id="tactics-pieces"></div></div></div>
-      <div class="card"><h3>${board.edit ? 'Armar alineación' : 'Alineación'}</h3>${board.edit ? `<form id="tactics-add" class="mb"><div class="field"><label for="tactics-player">Jugador</label><select id="tactics-player" required></select></div><div class="field"><label for="tactics-position">Posición en la pizarra</label><select id="tactics-position">${positions('MC')}</select></div><button type="submit">Agregar al campo</button></form>` : ''}
-      <div class="hr"></div><div class="row between mb"><h3 style="margin:0">Banco de suplentes</h3><span class="badge" id="tactics-bench-count"></span></div>${board.edit ? '<form id="tactics-bench-add" class="mb"><div class="field"><label for="tactics-bench-player">Suplente</label><select id="tactics-bench-player" required></select></div><button type="submit">Agregar al banco</button></form>' : ''}<div id="tactics-bench"></div><div class="hr"></div><h3>Titulares</h3><div id="tactics-roster"></div><p class="muted small mt" id="tactics-status">${saved ? 'Formación guardada.' : 'Todavía no hay una formación guardada.'}</p>${board.edit ? '<button id="tactics-save" class="mt">Guardar pizarra</button>' : ''}</div></div>`;
+      <div class="card"><h3>${board.edit ? 'Armar alineación' : 'Alineación'}</h3>${board.edit ? `<form id="tactics-add" class="mb"><div class="field"><label for="tactics-player">Jugador</label><select id="tactics-player" required></select></div><div class="field"><label for="tactics-position">Posición en la formación</label><select id="tactics-position">${positions('MC')}</select></div><button type="submit">Agregar al campo</button></form>` : ''}
+      <div class="hr"></div><div class="row between mb"><h3 style="margin:0">Banco de suplentes</h3><span class="badge" id="tactics-bench-count"></span></div>${board.edit ? '<form id="tactics-bench-add" class="mb"><div class="field"><label for="tactics-bench-player">Suplente</label><select id="tactics-bench-player" required></select></div><button type="submit">Agregar al banco</button></form>' : ''}<div id="tactics-bench"></div><div class="hr"></div><h3>Titulares</h3><div id="tactics-roster"></div><p class="muted small mt" id="tactics-status">${saved ? 'Formación guardada.' : 'Todavía no hay una formación guardada.'}</p>${board.edit ? '<button id="tactics-save" class="mt">Guardar formación</button>' : ''}</div></div>`;
+    const disc = teamDiscColors(club(cid).color);
+    $('#tactics-pitch').style.setProperty('--team-disc-color', disc.color);
+    $('#tactics-pitch').style.setProperty('--team-disc-ink', disc.ink);
     render();
     if (board.edit) {
       $('#tactics-player').addEventListener('change', (e) => { const p = U.player(e.target.value); if (p) $('#tactics-position').value = p.position; });
@@ -103,10 +115,10 @@
       if (board === saving && current()) {
         const changed = JSON.stringify(saving.lineup) !== JSON.stringify(lineup) || JSON.stringify(saving.bench) !== JSON.stringify(bench);
         saving.dirty = changed; $('#tactics-status').textContent = changed ? 'Hay cambios nuevos sin guardar.' : 'Formación guardada y publicada.';
-        toast('Pizarra guardada', 'ok');
+        toast('Formación guardada', 'ok');
       }
     } catch (x) { if (board === saving && current()) { $('#tactics-status').textContent = 'No se pudo guardar. Tus cambios siguen en pantalla.'; err(x); } }
-    finally { if (board === saving && current()) { button.disabled = false; button.textContent = 'Guardar pizarra'; } }
+    finally { if (board === saving && current()) { button.disabled = false; button.textContent = 'Guardar formación'; } }
   }
   window.addEventListener('beforeunload', (e) => { if (current() && board.dirty) { e.preventDefault(); e.returnValue = ''; } });
 })();

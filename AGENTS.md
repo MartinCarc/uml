@@ -22,3 +22,5 @@
 - Página del equipo: mostrar sponsor vigente y estadio con nombre, capacidad y foto. Solo el administrador puede subir imágenes de sponsors/estadios. Usar Storage con permisos de administrador, no secretos en el navegador.
 
 - Identidad visual de competencias autorizada: Premier azul, Championship rojo, UML Cup violeta, Supercup dorado y Promociones negro/plata, inspiradas en los logos del usuario. Mantener fuentes, tamaños, distribución y colores semánticos de advertencias/resultados. Las vistas generales conservan la identidad UML. No recrear ni recolorear los logos originales; se cargan desde Admin → Competencias.
+
+- El nombre visible del editor táctico es Formación. Las fichas usan el color configurado del club, con letras blancas/negras según contraste. Conservar la ruta interna pizarra y las formaciones guardadas.
