@@ -207,7 +207,7 @@
   });
   function squadMini(cid, compId) {
     const ps = squad(cid); if (!ps.length) return '<div class="muted small">Plantel vacío.</div>';
-    return `<div class="table-wrap"><table><tbody>${ps.map((p) => { const out = U.playerSanctions(p.id).filter((s) => !s.competition_id || s.competition_id === compId); return `<tr style="${out.length ? 'opacity:.55' : ''}"><td class="muted small">${p.number ?? ''}</td><td><span class="badge">${p.position}</span></td><td>${esc(p.name)}</td><td class="num muted">${U.rating(p.overall)}</td><td class="right">${out.map((s) => `<span class="sanc ${s.type.startsWith('injury') ? 'inj' : ''}">${s.type.startsWith('injury') ? 'LES' : 'SUSP'} ${s.remaining}</span>`).join(' ')}</td></tr>`; }).join('')}</tbody></table></div>`;
+    return `<div class="table-wrap"><table><tbody>${ps.map((p) => { const out = U.playerSanctions(p.id).filter((s) => !s.competition_id || s.competition_id === compId); return `<tr style="${out.length ? 'opacity:.55' : ''}"><td class="muted small">${p.number ?? ''}</td><td>${U.positionBadge(p.position)}</td><td>${esc(p.name)}</td><td class="num muted">${U.rating(p.overall, true)}</td><td class="right">${out.map((s) => `<span class="sanc ${s.type.startsWith('injury') ? 'inj' : ''}">${s.type.startsWith('injury') ? 'LES' : 'SUSP'} ${s.remaining}</span>`).join(' ')}</td></tr>`; }).join('')}</tbody></table></div>`;
   }
 
   // Modal de carga de resultado
@@ -272,7 +272,7 @@
       body = leagues.map((c) => { const rows = standings(c.id); return `<h3>${esc(c.name)}</h3><table class="mb"><thead><tr><th>Equipo</th><th class="num">GF</th><th class="num">GC</th><th class="num">Prom GF</th><th class="num">Vallas invictas</th></tr></thead><tbody>${rows.map((r) => `<tr><td>${clubLabel(r.club_id)}</td><td class="num">${r.gf}</td><td class="num">${r.gc}</td><td class="num">${r.pj ? (r.gf / r.pj).toFixed(2) : '-'}</td><td class="num">${S.matches.filter((m) => m.competition_id === c.id && m.status === 'played' && ((m.home_club_id === r.club_id && m.away_goals === 0) || (m.away_club_id === r.club_id && m.home_goals === 0))).length}</td></tr>`).join('')}</tbody></table>`; }).join('') || '<div class="empty">Sin ligas.</div>';
     } else {
       const rows = topList(statsTab, 30, statsComp || null);
-      body = rows.length ? `<table><thead><tr><th>#</th><th>Jugador</th><th>Equipo</th><th class="num">Total</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td><a href="#/s/${S.sid}/jugador/${r.p.id}" style="color:inherit"><b>${esc(r.p.name)}</b></a> <span class="badge">${r.p.position}</span></td><td>${r.p.club_id ? clubLabel(r.p.club_id) : '<span class="muted">libre</span>'}</td><td class="num pts">${r.n}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">Sin datos todavía.</div>';
+      body = rows.length ? `<table><thead><tr><th>#</th><th>Jugador</th><th>Equipo</th><th class="num">Total</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td><a href="#/s/${S.sid}/jugador/${r.p.id}" style="color:inherit"><b>${esc(r.p.name)}</b></a> ${U.positionBadge(r.p.position)}</td><td>${r.p.club_id ? clubLabel(r.p.club_id) : '<span class="muted">libre</span>'}</td><td class="num pts">${r.n}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">Sin datos todavía.</div>';
     }
     const heading = U.statsCompetition() ? (title,sub,actions)=>U.competitionHead(U.statsCompetition(),`Estadísticas · ${sub}`,actions) : pageHead;
     $('#app').innerHTML = heading('Estadísticas', esc(S.season.name), `<select style="width:auto" onchange="A.statsComp(this.value)"><option value="">Toda la temporada</option>${S.competitions.map((c) => opt(c.id, c.name, statsComp)).join('')}</select>`) +
@@ -312,7 +312,7 @@
     const ps = squad(cid); if (!ps.length) return '<div class="empty">Plantel vacío.</div>';
     const goals = (pid) => S.events.filter((e) => e.player_id === pid && e.type === 'goal').length;
     return `<div class="table-wrap"><table><thead><tr><th>#</th><th>Pos</th><th>Jugador</th><th class="num">Edad</th><th class="num">Media</th><th class="num">Goles</th><th class="num">Valor</th><th>Estado</th>${opts.actions ? '<th></th>' : ''}</tr></thead>
-      <tbody>${ps.map((p) => `<tr><td class="muted">${p.number ?? ''}</td><td><span class="badge" title="${POS[p.position]}">${p.position}</span></td><td><a href="#/s/${S.sid}/jugador/${p.id}" style="color:inherit"><b>${esc(p.name)}</b></a>${p.loan_from_club_id ? ` <span class="badge amber" title="Cedido por ${esc(club(p.loan_from_club_id)?.name)}">Cedido</span>` : ''}</td><td class="num">${p.age}</td><td class="num">${U.rating(p.overall)}</td><td class="num">${goals(p.id)}</td><td class="num">${p.value != null ? fmtM(p.value) : '<span class="muted">—</span>'}</td><td>${p.transfer_listed ? '<span class="badge green">Transferible</span> ' : ''}${p.loan_listed ? '<span class="badge amber">Cedible</span> ' : ''}${sancBadges(p.id)}</td>${opts.actions ? `<td class="right">${opts.actions(p)}</td>` : ''}</tr>`).join('')}</tbody></table></div>`;
+      <tbody>${ps.map((p) => `<tr><td class="muted">${p.number ?? ''}</td><td>${U.positionBadge(p.position)}</td><td><a href="#/s/${S.sid}/jugador/${p.id}" style="color:inherit"><b>${esc(p.name)}</b></a>${p.loan_from_club_id ? ` <span class="badge amber" title="Cedido por ${esc(club(p.loan_from_club_id)?.name)}">Cedido</span>` : ''}</td><td class="num">${p.age}</td><td class="num">${U.rating(p.overall, true)}</td><td class="num">${goals(p.id)}</td><td class="num">${p.value != null ? fmtM(p.value) : '<span class="muted">—</span>'}</td><td>${p.transfer_listed ? '<span class="badge green">Transferible</span> ' : ''}${p.loan_listed ? '<span class="badge amber">Cedible</span> ' : ''}${sancBadges(p.id)}</td>${opts.actions ? `<td class="right">${opts.actions(p)}</td>` : ''}</tr>`).join('')}</tbody></table></div>`;
   }
   U.squadTable = squadTable;
 
@@ -334,6 +334,7 @@
     }).join('')}</div>`;
   }
 
+  U.playerAbilities = playerAbilities;
   // Spanish labels for the PES 2013 codes. Stored card IDs remain unchanged.
   const PES13_CARD_NAMES = {
     "playing_styles": [
@@ -394,9 +395,11 @@
     }).join('')}</div>`;
   }
 
+  U.playerCards = playerCards;
+
   register('jugador', async (pid) => {
     let p = player(pid);
-    if (!p && !S.season.historical) { const { data } = await sb().from('players').select('*').eq('id', pid).single(); p = data; }
+    if (!p && S.season.status !== 'closed' && !S.season.historical) { const { data } = await sb().from('players').select('*').eq('id', pid).single(); p = data; }
     if (!p) return ($('#app').innerHTML = '<div class="empty">Jugador inexistente.</div>');
     const evs = S.events.filter((e) => e.player_id === pid || e.assist_player_id === pid);
     const n = (t) => evs.filter((e) => e.type === t && e.player_id === pid).length;
@@ -406,11 +409,11 @@
     const stats = playerAbilities(p.stats);
     $('#app').innerHTML = `
       <div class="card navy"><div class="row" style="gap:18px"><span class="avatar" style="width:84px;height:84px;font-size:30px;border:3px solid #fff">${p.photo_url ? `<img src="${esc(p.photo_url)}">` : esc(p.name.slice(0, 1))}</span>
-        <div><h1 style="margin:0">${p.number ? `<span style="color:#8FB0EE">${p.number}</span> ` : ''}${esc(p.name)}</h1><div class="muted">${POS[p.position]} · ${p.age} años${p.retired ? ' · Retirado' : p.club_id ? ' · ' + esc(club(p.club_id)?.name || '') : ' · Agente libre'}</div><div class="mt" style="font-size:18px">Valor: <b>${p.value != null ? fmtM(p.value) : '—'}</b></div><div class="mt">${sancBadges(pid)}</div></div>
-        <div class="grid summary-stats"><div class="stat"><div class="v">${U.rating(p.overall)}</div><div class="l">Media</div></div><div class="stat"><div class="v">${n('goal')}</div><div class="l">Goles</div></div><div class="stat"><div class="v">${assists}</div><div class="l">Asistencias</div></div><div class="stat"><div class="v">${p.position === 'ARQ' ? saves : mvp}</div><div class="l">${p.position === 'ARQ' ? 'Atajadas' : 'MVP'}</div></div></div></div></div>
-      <div class="grid c2">
-        <div class="card"><h3>Temporada</h3><div class="grid c4"><div class="stat"><div class="v">${n('yellow') + n('second_yellow')}</div><div class="l">Amarillas</div></div><div class="stat"><div class="v">${n('red') + n('second_yellow')}</div><div class="l">Rojas</div></div><div class="stat"><div class="v">${n('injury_minor') + n('injury_major')}</div><div class="l">Lesiones</div></div><div class="stat"><div class="v">${trainings.length}</div><div class="l">Entrenamientos</div></div></div>
-          ${p.loan_from_club_id ? `<div class="mt small muted">Cedido por ${esc(club(p.loan_from_club_id)?.name)}</div>` : ''}</div>
+        <div><h1 style="margin:0">${p.number ? `<span style="color:#8FB0EE">${p.number}</span> ` : ''}${esc(p.name)}</h1><div class="muted">${U.positionBadge(p.position)} · ${p.age} años${p.retired ? ' · Retirado' : p.club_id ? ' · ' + esc(club(p.club_id)?.name || '') : ' · Agente libre'}</div><div class="mt" style="font-size:18px">Valor: <b>${p.value != null ? fmtM(p.value) : '—'}</b></div><div class="mt">${sancBadges(pid)}</div></div>
+        <div class="grid summary-stats"><div class="stat"><div class="v">${U.rating(p.overall, true)}</div><div class="l">Media</div></div><div class="stat"><div class="v">${n('goal')}</div><div class="l">Goles</div></div><div class="stat"><div class="v">${assists}</div><div class="l">Asistencias</div></div><div class="stat"><div class="v">${p.position === 'ARQ' ? saves : mvp}</div><div class="l">${p.position === 'ARQ' ? 'Atajadas' : 'MVP'}</div></div></div></div></div>
+      <div class="grid c2 of-layout"><div>
+        ${p.option_file_data && U.optionFileDetails ? U.optionFileDetails({...p.option_file_data,age:p.age}) : ''}<div class="card"><h3>Temporada</h3><div class="grid c4"><div class="stat"><div class="v">${n('yellow') + n('second_yellow')}</div><div class="l">Amarillas</div></div><div class="stat"><div class="v">${n('red') + n('second_yellow')}</div><div class="l">Rojas</div></div><div class="stat"><div class="v">${n('injury_minor') + n('injury_major')}</div><div class="l">Lesiones</div></div><div class="stat"><div class="v">${trainings.length}</div><div class="l">Entrenamientos</div></div></div>
+          ${p.loan_from_club_id ? `<div class="mt small muted">Cedido por ${esc(club(p.loan_from_club_id)?.name)}</div>` : ''}</div></div>
         <div class="card"><h3>Habilidades</h3>${stats}<div class="pes-player-cards"><h3>Tarjetas especiales</h3>${playerCards(p.pes2013_cards)}</div></div>
       </div>`;
   });

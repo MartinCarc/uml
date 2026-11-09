@@ -254,3 +254,16 @@ En **Formación**, el DT o administrador puede elegir **capitán**, **penales**,
 **Indicaciones para el simulador** admite hasta 4000 caracteres, con saltos de línea. Se pueden escribir cambios por minuto, variantes según el marcador o quién ejecuta una pelota parada si entra un suplente. Cualquiera de los botones **Guardar formación** publica titulares, banco, responsables e indicaciones juntos. Ante un error, los cambios quedan en pantalla para reintentar.
 
 El simulador entra desde **Partido → Formaciones de los equipos** y ve responsables e indicaciones de solo lectura. Se trata de la formación actual del equipo en esa temporada; no se guarda una copia por partido. Las temporadas cerradas no se editan. La consulta mantiene compatibles las llamadas anteriores: conserva indicaciones y funciones vigentes, quitando solo las funciones de titulares retirados de la formación.
+
+
+## Option File PES 2013
+
+Aplicar `supabase/migrations/20261109_option_file.sql` como consulta nueva sobre la instalación existente. Publicar los archivos actualizados del paquete, incluidos `js/pes13.js`, `js/option-file.js` e `index.html`. No ejecutar reset ni volver a ejecutar migraciones de datos anteriores.
+
+Todos pueden consultar `#/option-file`, buscar, filtrar y abrir fichas. Solo administradores ven **Actualizar Option File**, también disponible desde Admin. Subir CSV UTF-8 del editor, nombrar la versión, revisar los datos y confirmar. No es necesario volver a modificar GitHub para futuras versiones del CSV. El primer catálogo se carga con el mismo flujo desde la app.
+
+La actualización sincroniza únicamente datos deportivos mediante el ID del EDIT. Conserva los equipos y contratos UML, operaciones pendientes, dinero, valores del DT, dorsales, UUID e historial. Repetir el mismo archivo vigente no duplica versiones ni ejecuta transferencias. Las diferencias de equipo y los IDs ausentes se muestran para revisión, nunca mueven ni borran jugadores. Los snapshots de temporadas cerradas se conservan.
+
+En una temporada en preparación, Admin → Jugadores ofrece alta manual y **Elegir desde Option File**. También hay acceso por club en Clubes y DTs. Seleccionar el club del EDIT y los jugadores, revisar valor/dorsal y confirmar. No se sustituye un plantel existente; solo se incorporan seleccionados sin duplicar IDs. Para jugadores creados manualmente usar **Vincular a un jugador UML existente** en la ficha Option File correspondiente.
+
+El CSV inicial contiene 12.089 jugadores y 71 espacios de ID 0. El exportador añadió una columna vacía de más en R. Ivanov: se normaliza y se avisa antes de publicar, conservando sus atributos comprobados con el EDIT. Otras filas inválidas se avisan y los IDs repetidos bloquean la carga. El cálculo principal del editor da 83 a Havertz y 100 a Barella/Maradona; esos valores se conservan sin usar el promedio entre paréntesis. No se copian precios internos del editor a la economía UML.

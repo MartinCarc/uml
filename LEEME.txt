@@ -1,1 +1,69 @@
-Reemplazá js/pages.js en GitHub respetando su carpeta. El título principal pasa a ser Tarjetas especiales. Los subtítulos Estilos de juego y Habilidades especiales se mantienen. No requiere SQL ni cambios en Supabase.
+UML — OPTION FILE Y COLORES DE POSICIONES
+
+INSTALACIÓN (UNA SOLA VEZ)
+
+1. SUPABASE
+Abrí SQL Editor → New query. Copiá TODO el contenido de:
+supabase/migrations/20261109_option_file.sql
+Ejecutalo con Run. Es una consulta NUEVA: no reemplaza ni requiere volver a ejecutar las anteriores. No ejecuta reset ni borra la temporada de prueba.
+
+2. GITHUB
+Subí los archivos incluidos respetando sus rutas, preferentemente juntos en el mismo commit:
+index.html
+styles.css
+js/core.js
+js/pages.js
+js/admin.js
+js/market.js
+js/tactics.js
+js/pes13.js          (NUEVO)
+js/option-file.js    (NUEVO)
+AGENTS.md
+README.md
+supabase/migrations/20261109_option_file.sql
+
+Los archivos admin.js/core.js/pages.js que se modifican están DENTRO DE js/. No reemplaces los duplicados antiguos de la raíz. No reemplaces carpetas enteras ni borres otros archivos del proyecto. No cambies config.js.
+
+3. PRIMERA CARGA DEL CATÁLOGO
+Esperá el despliegue de Vercel y recargá con Ctrl+F5. Entrá con tu cuenta de administrador:
+Option File → Actualizar Option File
+(o Admin → Option File).
+Poné un nombre de versión, por ejemplo Inicial UML, y elegí el CSV incluido en CSV-para-cargar/ (también sirve el archivo original que nos compartiste).
+Hacé clic en Preparar actualización. Revisá el resumen, las correcciones y diferencias; marcá la confirmación y presioná Publicar y sincronizar.
+
+La carpeta CSV-para-cargar es para elegir el archivo desde tu PC: NO hace falta subirla a GitHub. La base se carga en Supabase desde la app; no se transforma automáticamente en planteles UML.
+
+El CSV inicial aporta 12.089 jugadores reales. Se ignoran 71 espacios del editor con ID 0. La fila de R. Ivanov tiene un separador vacío de más: el importador lo normaliza y lo indica antes de confirmar. Se cotejaron sus 23 atributos, edad y altura con el EDIT original. No se alteran los atributos por esa corrección. Otras filas inválidas se avisan y los IDs repetidos bloquean el archivo.
+
+USO DE OPTION FILE
+Todos pueden consultar el catálogo, incluso visitantes. Buscá por nombre/apellido o ID; filtrá por equipo del EDIT (incluido Sin equipo), posición natural o alternativa, edad y media; recorré las páginas y abrí la ficha. Se mantienen el diseño y los estilos de UML.
+La ficha contiene únicamente los datos acordados: información personal, ID, posiciones, forma física, pierna menos hábil, tolerancia a lesiones, actitud ofensiva/defensiva, los 23 atributos y las tarjetas especiales en español. No hay Datos adicionales del EDIT ni campos de cara/pelo/botines/animaciones/precio interno.
+
+La media usa el cálculo principal de PES 2013 Editor 2.0 según la posición registrada: Havertz SD=83, Leno ARQ=76 y Robinson LI=94. No se utiliza el promedio entre paréntesis. El editor da 100 a Barella y Maradona en este archivo: se conserva ese cálculo y se muestra rojo, sin rebajarlo artificialmente a 99.
+
+POSICIONES EN TODA LA APP
+ARQ naranja; DFC/LD/LI azul; MCD/MC/MD/MI/MCO verde; SD/DC/ED/EI rojo. En Formación los colores del equipo se conservan en ficha y nombre; la posición tiene su propio distintivo claro. SWP del EDIT se agrupa como DFC.
+
+ARMAR LOS PLANTELES INICIALES UML
+En una temporada EN PREPARACIÓN:
+Admin → Jugadores → Elegir desde Option File.
+Elegí el equipo UML de destino, seleccioná el club del EDIT (o buscá jugadores), marcá a quiénes incorporar y revisá valor inicial y dorsal UML antes de confirmar. La selección por página permite incorporar el plantel del club completo o una parte, sin superar los cupos.
+También hay un acceso Plantel desde Option File en Admin → Clubes y DTs.
+Se conserva Agregar jugador manualmente. Para unir uno de esos jugadores con su registro del EDIT, abrí su ficha de Option File y usá Vincular a un jugador UML existente. La app no lo vincula automáticamente por nombre.
+No se crean duplicados de un ID ya registrado en la etapa actual. No se reemplazan ni vacían planteles existentes. Archivar una etapa conserva su historial y permite reutilizar los IDs en la nueva; esa acción no se ejecuta durante la instalación.
+
+ACTUALIZACIONES DE MITAD Y FINAL DE TEMPORADA
+Volvé a Actualizar Option File, subí el nuevo CSV y revisá antes de confirmar. NO necesitás pasarle el archivo a Codex ni tocar GitHub para estas actualizaciones.
+La versión nueva se publica de una sola vez. Una carga incompleta, inválida o cancelada no sustituye el catálogo vigente ni modifica planteles. Se guarda un historial de versiones. Volver a subir el mismo archivo vigente no duplica versiones, operaciones ni pagos.
+
+La sincronización usa el ID del EDIT y modifica únicamente datos deportivos: nombre, edad, posición natural, media calculada, habilidades, tarjetas y los datos personales seleccionados.
+Conserva los UUID UML, equipo actual, cesiones, valor económico del DT, dorsal, transferencias realizadas, operaciones pendientes, presupuesto, dinero, resultados, sanciones, formación y retiros. No ejecuta operaciones de mercado ni funciones de cobro/pago. Las temporadas cerradas conservan sus snapshots.
+El club que figure en el CSV NO mueve al jugador en UML. Se muestran las diferencias para revisión y se señala si tiene una operación pendiente. Si un ID desaparece, el jugador UML y sus últimos datos se conservan; no se elimina. Si se cambia un ID del EDIT, habrá que revisar su vínculo.
+
+Los 25 jugadores del Fulham de prueba que ya cotejamos se vinculan por sus UUID/nombres/club verificados. La primera publicación actualizará sus datos deportivos desde el archivo; por ejemplo, la media recalculada de Castagne es 78 en este CSV. Sus valores económicos y dorsales se conservan. Jugadores manuales que no coincidan con esos vínculos se revisan explícitamente desde el catálogo.
+
+COMPROBACIONES REALIZADAS
+Carga del CSV completo mediante la pantalla y RPC SQL reales en una base aislada: 12.089 jugadores, búsqueda, filtros, paginación, fichas, permisos públicos/administrador e importación con valor y dorsal elegidos. Mismo archivo repetido sin duplicados. Versiones incompletas, filas inválidas, IDs duplicados, permisos insuficientes y cargas antiguas rechazadas sin afectar el catálogo vigente.
+Pruebas de sincronización conservando presupuestos, transacciones, ofertas, cola, propiedad, valores, dorsales y snapshots. Pruebas anteriores de economía, sponsors, copa, formación, colores y tarjetas también pasaron. Revisado a 320/390 px y en computadora.
+
+No se ejecutó esta migración en tu Supabase ni se publicó la actualización desde este entorno. La temporada de prueba sigue sin borrarse.

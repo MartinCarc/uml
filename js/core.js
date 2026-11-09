@@ -7,9 +7,9 @@ window.U = (() => {
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   // PES 2013: the same scale for abilities and overall, independent of competition colors.
-  function rating(value) {
+  function rating(value, overall = false) {
     const n = typeof value === 'number' || (typeof value === 'string' && value.trim() !== '') ? Number(value) : NaN;
-    if (!Number.isInteger(n) || n < 0 || n > 99) return '<span class="rating-missing">—</span>';
+    if (!Number.isInteger(n) || n < 0 || n > (overall ? 199 : 99)) return '<span class="rating-missing">—</span>';
     const band = n >= 95 ? 'red' : n >= 90 ? 'orange' : n >= 80 ? 'yellow' : n >= 75 ? 'green' : 'black';
     return `<span class="pes-rating pes-rating--${band}">${n}</span>`;
   }
@@ -19,6 +19,8 @@ window.U = (() => {
   const datetime = (d) => d ? new Date(d).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
 
   const POS = { ARQ: 'Arquero', DFC: 'Defensor central', LD: 'Lateral derecho', LI: 'Lateral izquierdo', MCD: 'Mediocampista defensivo', MC: 'Mediocampista central', MD: 'Volante derecho', MI: 'Volante izquierdo', MCO: 'Mediocampista ofensivo', DC: 'Delantero centro', SD: 'Segundo delantero', ED: 'Extremo derecho', EI: 'Extremo izquierdo' };
+  const positionClass = (position) => ({ARQ:'keeper',DFC:'defender',LD:'defender',LI:'defender',MCD:'midfielder',MC:'midfielder',MD:'midfielder',MI:'midfielder',MCO:'midfielder',SD:'forward',DC:'forward',ED:'forward',EI:'forward'}[position] || 'unknown');
+  const positionBadge = (position) => `<span class="badge position position--${positionClass(position)}" title="${esc(POS[position] || '')}">${esc(position || '—')}</span>`;
   const POS_ORDER = Object.keys(POS);
   const GROUP = (p) => p === 'ARQ' ? 'ARQ' : ['DFC', 'LD', 'LI'].includes(p) ? 'DEF' : ['MCD', 'MC', 'MD', 'MI', 'MCO'].includes(p) ? 'MED' : 'DEL';
   const STAGE = { league: 'Liga', group: 'Grupos', r64: '64avos', r32: '32avos', r16: 'Octavos', qf: 'Cuartos', sf: 'Semifinal', final: 'Final', promotion: 'Promoción' };
@@ -47,7 +49,7 @@ window.U = (() => {
   async function rpc(name, args) { const { data, error } = await sb.rpc(name, args); if (error) throw error; return data; }
   async function confirmDo(msg, fn) { if (!confirm(msg)) return; try { await fn(); } catch (e) { err(e); } }
   const formData = (form) => Object.fromEntries(new FormData(form));
-  const opt = (v, label, sel) => `<option value="${esc(v)}" ${String(sel) === String(v) ? 'selected' : ''}>${esc(label)}</option>`;
+  const opt = (v, label, sel) => `<option value="${esc(v)}" ${String(sel) === String(v) ? 'selected' : ''}>${esc(POS[v] ? v : label)}</option>`;
 
   // ---------------- lookups ----------------
   const club = (id) => S.clubs.find((c) => c.id === id);
@@ -136,12 +138,12 @@ window.U = (() => {
   // ---------------- router ----------------
   const routes = {}; // name -> fn(params)
   function register(name, fn) { routes[name] = fn; }
-  const NAV = [['inicio', 'Inicio'], ['tabla', 'Tabla'], ['fixture', 'Fixture'], ['stats', 'Estadísticas'], ['equipos', 'Equipos'], ['mercado', 'Mercado'], ['mi-equipo', 'Mi equipo'], ['mis-partidos', 'Mis partidos'], ['banco', 'UML Bank'], ['admin', 'Admin']];
+  const NAV = [['inicio', 'Inicio'], ['tabla', 'Tabla'], ['fixture', 'Fixture'], ['stats', 'Estadísticas'], ['equipos', 'Equipos'], ['mercado', 'Mercado'], ['option-file', 'Option File'], ['mi-equipo', 'Mi equipo'], ['mis-partidos', 'Mis partidos'], ['banco', 'UML Bank'], ['admin', 'Admin']];
   function renderNav(active) {
     const nav = $('#nav');
-    if (!S.sid || !S.season) nav.innerHTML = '';
+    if (!S.sid || !S.season) nav.innerHTML = `<a href="#/">Inicio</a><a href="#/option-file" class="${active === 'option-file' ? 'active' : ''}">Option File</a>`;
     else nav.innerHTML = NAV.filter(([k]) => (k !== 'admin' || isAdmin()) && (k !== 'mi-equipo' || S.myClub) && (k !== 'mis-partidos' || S.profile?.is_simulator))
-      .map(([k, v]) => `<a href="${k === 'inicio' ? '#/' : `#/s/${S.sid}/${k}`}" class="${active === k ? 'active' : ''}">${v}</a>`).join('');
+      .map(([k, v]) => `<a href="${k === 'inicio' ? '#/' : k === 'option-file' ? '#/option-file' : `#/s/${S.sid}/${k}`}" class="${active === k ? 'active' : ''}">${v}</a>`).join('');
     const ub = $('#userbox');
     if (S.user) {
       const p = S.profile; const initials = (p?.username || '?').slice(0, 1).toUpperCase();
@@ -154,6 +156,7 @@ window.U = (() => {
     const app = $('#app');
     if(parts[0]!=='s') U.applyCompetitionTheme?.(null);
     try {
+      if (parts[0] === 'option-file') { renderNav('option-file'); return await routes['option-file'](parts[1]); }
       if (parts[0] === 'login') { renderNav(null); return routes.login(); }
       if (parts[0] === 'perfil') { renderNav(null); return routes.perfil(parts[1]); }
       if (parts[0] === 'clubes') { renderNav(null); return await routes.clubes(); }
@@ -174,8 +177,18 @@ window.U = (() => {
     } catch (e) { U.applyCompetitionTheme?.(null); err(e); app.innerHTML = `<div class="card"><h2>Error</h2><p>${esc(e.message)}</p><p><a href="#/">Volver al inicio</a></p></div>`; }
   }
 
-  return { CFG, CUR, $, esc, rating, fmt, fmtM, date, datetime, POS, POS_ORDER, GROUP, STAGE, EVENT, SANC, S, setClient, client, toast, modal, closeModal, err, isAdmin, isSim, rpc, confirmDo, formData, opt,
+  return { CFG, CUR, $, esc, rating, positionBadge, positionClass, fmt, fmtM, date, datetime, POS, POS_ORDER, GROUP, STAGE, EVENT, SANC, S, setClient, client, toast, modal, closeModal, err, isAdmin, isSim, rpc, confirmDo, formData, opt,
     club, player, comp, st, profile, managerName, compClubs, squad, playerSanctions, cfg, crest, clubLabel, statusBadge, sancBadges, pageHead, standings, matchGoals, tieWinner,
     loadProfile, loadProfiles, loadSettings, loadSeasons, loadSeason, refresh, register, renderNav, route };
 })();
 window.A = window.A || {};
+const paintPositionSelects = () => document.querySelectorAll('select').forEach(select => {
+  const positions = [...select.options].filter(option => U.POS[option.value]);
+  if (!positions.length) return;
+  positions.forEach(option => { option.className = 'position-option position--'+U.positionClass(option.value); });
+  select.classList.add('position-select');
+  select.className = select.className.replace(/position--[a-z]+/g,'').trim()+' position--'+U.positionClass(select.value);
+});
+new MutationObserver(paintPositionSelects).observe(document.getElementById('app'), {childList:true,subtree:true});
+new MutationObserver(paintPositionSelects).observe(document.getElementById('modal-card'), {childList:true,subtree:true});
+document.addEventListener('change', event => { if(event.target.matches('select.position-select')) paintPositionSelects(); });

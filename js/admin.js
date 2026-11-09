@@ -155,12 +155,12 @@
 
   // ================= PANEL ADMIN =================
   let tab = 'temporada';
-  A.adminTab = (k) => { tab = k; U.route(); };
+  A.adminTab = (k) => { if(k === 'option-file') { location.hash = '#/option-file/admin'; return; } tab = k; U.route(); };
   register('admin', async () => {
     if (!guard()) return;
     if (S.season.historical) return ($('#app').innerHTML = pageHead('Administración', esc(S.season.name)) + '<div class="empty">Esta temporada pertenece a una etapa archivada. Su historial se conserva para consulta.</div>');
     await loadProfiles();
-    const tabs = [['temporada', 'Temporada'], ['clubes', 'Clubes y DTs'], ['jugadores', 'Jugadores'], ['competencias', 'Competencias'], ['partidos', 'Partidos'], ['sanciones', 'Sanciones'], ['usuarios', 'Usuarios'], ['auditoria', 'Auditoría'], ['sponsors', 'Sponsors']];
+    const tabs = [['temporada', 'Temporada'], ['clubes', 'Clubes y DTs'], ['jugadores', 'Jugadores'], ['competencias', 'Competencias'], ['partidos', 'Partidos'], ['sanciones', 'Sanciones'], ['usuarios', 'Usuarios'], ['option-file', 'Option File'], ['auditoria', 'Auditoría'], ['sponsors', 'Sponsors']];
     const body = await ({ temporada: tabSeason, clubes: tabClubs, jugadores: tabPlayers, competencias: tabComps, partidos: tabMatches, sanciones: tabSanctions, usuarios: tabUsers, auditoria: tabAudit, sponsors: U.sponsorAdmin }[tab])();
     $('#app').innerHTML = pageHead('Administración', esc(S.season.name) + ' ' + statusBadge(S.season.status)) + `<div class="tabs">${tabs.map(([k, v]) => `<button class="${k === tab ? 'active' : ''}" onclick="A.adminTab('${k}')">${v}</button>`).join('')}</div>${body}`;
   });
@@ -211,7 +211,7 @@
       ${S.seasonTeams.map((t) => { const c = club(t.club_id); return `<tr><td>${clubLabel(c.id)}</td><td>${S.season.mode === 'two' ? `<select style="width:auto" onchange="A.setTier('${t.id}', this.value)">${opt(1, 'Premier', t.tier)}${opt(2, 'Championship', t.tier)}</select>` : '—'}</td>
         <td><select style="width:auto;max-width:170px" onchange="A.assignManager('${t.id}', this.value)"><option value="">— Sin DT —</option>${S.profiles.map((p) => opt(p.id, p.username, t.manager_id)).join('')}</select></td>
         <td class="num money plain">${fmtM(t.budget)}${Number(t.reserved) ? `<div class="tiny muted">res. ${fmtM(t.reserved)}</div>` : ''}</td><td class="num">${squad(c.id).length}</td>
-        <td class="right"><button class="xs secondary" onclick="A.clubModal('${c.id}')">Editar</button> <button class="xs secondary" onclick="A.budgetModal('${c.id}')">$ Ajustar</button> ${S.season.status === 'draft' ? `<button class="xs danger" onclick="A.removeFromSeason('${t.id}')">Quitar</button>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="6" class="empty">Sin clubes en la temporada.</td></tr>'}</tbody></table></div></div>
+        <td class="right"><button class="xs secondary" onclick="A.clubModal('${c.id}')">Editar</button> <button class="xs secondary" onclick="A.budgetModal('${c.id}')">$ Ajustar</button> ${S.season.status === 'draft' ? `<button class="xs secondary" onclick="U.openOptionFileSquad('${c.id}')">Plantel desde Option File</button> <button class="xs danger" onclick="A.removeFromSeason('${t.id}')">Quitar</button>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="6" class="empty">Sin clubes en la temporada.</td></tr>'}</tbody></table></div></div>
       ${clubCatalog(all, true)}`;
   }
   function clubCatalog(all, seasonal) {
@@ -265,16 +265,17 @@
     const list = S.players.filter((p) => !pFilter || p.club_id === pFilter || (pFilter === 'free' && !p.club_id));
     const teamOpts = (sel) => `<option value="">— Agente libre —</option>${S.seasonTeams.map((t) => opt(t.club_id, club(t.club_id)?.name, sel)).join('')}`;
     return `<div class="grid c2">
-      <div class="card"><h3>Agregar jugador</h3><form onsubmit="A.addPlayer(event)">
+      <div class="card"><h3>Agregar jugador manualmente</h3><form onsubmit="A.addPlayer(event)">
         <div class="field"><label>Nombre</label><input name="name" required></div>
         <div class="fields"><div><label>Posición</label><select name="position">${Object.entries(POS).map(([k, v]) => opt(k, `${k} · ${v}`, 'MC')).join('')}</select></div><div><label>Edad</label><input name="age" type="number" min="15" max="45" value="25" required></div><div><label>Media</label><input name="overall" type="number" min="1" max="99"></div><div><label>Dorsal</label><input name="number" type="number" min="1" max="99"></div></div>
         <div class="fields"><div><label>Valor</label><input name="value" type="number" min="0" value="1000000"></div><div><label>Equipo</label><select name="club_id">${teamOpts('')}</select></div></div>
         <button type="submit">Agregar</button></form></div>
       <div class="card"><h3>Importar varios</h3><p class="muted small">Un jugador por línea: <code>Nombre, POS, Edad, Media, Valor, Dorsal</code>. POS: ${Object.keys(POS).join(' ')}. Ej: <code>Lautaro Martínez, DC, 29, 88, 60000000, 10</code></p>
         <form onsubmit="A.importPlayers(event)"><div class="field"><textarea name="text" rows="7"></textarea></div><div class="field"><label>Asignar a</label><select name="club_id">${teamOpts('')}</select></div><button type="submit">Importar</button></form></div></div>
+      <div class="card"><h3>Elegir desde Option File</h3><p class="small muted">Importá el plantel de un club del EDIT o seleccioná jugadores. Revisá valores y dorsales antes de confirmar.</p>${S.season.status === 'draft' ? `<div class="row"><select id="of-destination" aria-label="Equipo UML de destino" style="width:auto">${S.seasonTeams.map(t=>opt(t.club_id,club(t.club_id)?.name,'')).join('')}</select><button onclick="U.openOptionFileSquad(document.querySelector('#of-destination').value)">Elegir jugadores</button></div>` : '<p class="small muted">El armado inicial está disponible en temporadas en preparación.</p>'}<a href="#/option-file">Consultar Option File</a></div>
       <div class="card"><div class="row between"><h3 style="margin:0">Jugadores (${list.length})</h3><select style="width:auto" onchange="A.pFilter(this.value)"><option value="">Todos</option><option value="free" ${pFilter === 'free' ? 'selected' : ''}>Agentes libres</option>${S.seasonTeams.map((t) => opt(t.club_id, club(t.club_id)?.name, pFilter)).join('')}</select></div>
       <div class="table-wrap mt"><table><thead><tr><th>Jugador</th><th>Pos</th><th>Equipo</th><th class="num">Edad</th><th class="num">Media</th><th class="num">#</th><th></th></tr></thead><tbody>
-      ${list.map((p) => `<tr><td><b>${esc(p.name)}</b>${p.loan_from_club_id ? ' <span class="badge amber">cedido</span>' : ''}</td><td><span class="badge">${p.position}</span></td><td><select style="width:auto;max-width:150px" onchange="A.movePlayer('${p.id}', this.value)">${teamOpts(p.club_id)}</select></td><td class="num">${p.age}</td><td class="num">${U.rating(p.overall)}</td><td class="num">${p.number ?? ''}</td><td class="right"><button class="xs secondary" onclick="A.editPlayerModal('${p.id}')">Editar</button> <button class="xs danger" onclick="A.deletePlayer('${p.id}')">✕</button></td></tr>`).join('') || '<tr><td colspan="7" class="empty">Sin jugadores.</td></tr>'}</tbody></table></div></div>`;
+      ${list.map((p) => `<tr><td><b>${esc(p.name)}</b>${p.loan_from_club_id ? ' <span class="badge amber">cedido</span>' : ''}</td><td>${U.positionBadge(p.position)}</td><td><select style="width:auto;max-width:150px" onchange="A.movePlayer('${p.id}', this.value)">${teamOpts(p.club_id)}</select></td><td class="num">${p.age}</td><td class="num">${U.rating(p.overall, true)}</td><td class="num">${p.number ?? ''}</td><td class="right"><button class="xs secondary" onclick="A.editPlayerModal('${p.id}')">Editar</button> <button class="xs danger" onclick="A.deletePlayer('${p.id}')">✕</button></td></tr>`).join('') || '<tr><td colspan="7" class="empty">Sin jugadores.</td></tr>'}</tbody></table></div></div>`;
   }
   A.addPlayer = async (e) => { e.preventDefault(); const f = U.formData(e.target); try { await q(sb().from('players').insert({ name: f.name.trim(), position: f.position, age: +f.age, overall: f.overall ? +f.overall : null, number: f.number ? +f.number : null, value: +f.value || 0, club_id: f.club_id || null })); e.target.querySelector('[name=name]').value = ''; toast('Jugador agregado', 'ok'); refresh(); } catch (x) { err(x); } };
   A.importPlayers = async (e) => {
@@ -289,7 +290,7 @@
     const p = player(id);
     modal(`<h2>Editar jugador</h2><form onsubmit="A.savePlayer(event,'${id}')">
       <div class="field"><label>Nombre</label><input name="name" value="${esc(p.name)}" required></div>
-      <div class="fields"><div><label>Posición</label><select name="position">${Object.entries(POS).map(([k, v]) => opt(k, `${k} · ${v}`, p.position)).join('')}</select></div><div><label>Edad</label><input name="age" type="number" value="${p.age}"></div><div><label>Media</label><input name="overall" type="number" value="${U.rating(p.overall)}"></div><div><label>Dorsal</label><input name="number" type="number" value="${p.number ?? ''}"></div></div>
+      <div class="fields"><div><label>Posición</label><select name="position">${Object.entries(POS).map(([k, v]) => opt(k, `${k} · ${v}`, p.position)).join('')}</select></div><div><label>Edad</label><input name="age" type="number" value="${p.age}"></div><div><label>Media</label><input name="overall" type="number" value="${p.overall ?? ''}"></div><div><label>Dorsal</label><input name="number" type="number" value="${p.number ?? ''}"></div></div>
       <div class="field"><label>Valor</label><input name="value" type="number" min="0" value="${p.value}" required></div>
       <div class="field"><label>Foto (URL)</label><input name="photo_url" type="url" value="${esc(p.photo_url || '')}"></div>
       <div class="row"><button type="submit">Guardar</button><button type="button" class="secondary" onclick="U.closeModal()">Cancelar</button></div></form>`);
