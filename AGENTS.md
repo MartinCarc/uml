@@ -63,6 +63,8 @@
 
 ## Subastas — decisiones confirmadas
 
+- Subastas es una sección propia del menú principal, entre Mercado y Option File, con su enlace activo independiente. No mostrar una pestaña Subastas dentro de Mercado. Conservar el atajo administrativo.
+
 - Implementación autorizada con «Listo». El gimnasio queda para más adelante; el EDIT vigente y la temporada son de prueba y no se borran como parte de este trabajo.
 - Subastas públicas: cualquier visitante consulta jugador, clubes/DTs, importes, horarios e historial. Solo el DT asignado puja por su propio club; ser administrador no sustituye esa asignación.
 - El administrador elige un jugador disponible del Option File vigente; admite un agente libre ya vinculado conservando su UUID. Impedir duplicar un jugador UML, una incorporación pendiente o un lote abierto. Jugadores manuales coincidentes se vinculan explícitamente antes de subastar.

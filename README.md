@@ -271,7 +271,7 @@ El CSV inicial contiene 12.089 jugadores y 71 espacios de ID 0. El exportador a�
 
 ## Subastas públicas
 
-Accesos: **Mercado → Subastas** y **Admin → Subastas**. Conserva el estilo existente. El administrador selecciona un jugador disponible del Option File, establece precio inicial, incremento mínimo e inicio/cierre (hora de Argentina). Puede editar antes de la primera puja o cancelar con motivo; el historial se conserva. Solo el DT asignado al club puede pujar. Las pujas son públicas y vinculantes.
+Accesos: **Subastas** en el menú principal y **Admin → Subastas**. Conserva el estilo existente. El administrador selecciona un jugador disponible del Option File, establece precio inicial, incremento mínimo e inicio/cierre (hora de Argentina). Puede editar antes de la primera puja o cancelar con motivo; el historial se conserva. Solo el DT asignado al club puede pujar. Las pujas son públicas y vinculantes.
 
 La oferta líder reserva dinero y un cupo. Cada oferta válida en los últimos cinco minutos deja cinco minutos nuevos. Al adjudicar se cobra al ganador y se acredita UML Bank una sola vez. Con mercado abierto se entrega inmediatamente; cerrado, se entrega al abrirlo, sin nuevo cobro. Sin ofertas no se crea un jugador ni se mueve dinero. Actualizar el Option File conserva estas operaciones y sus valores.
 
@@ -280,7 +280,7 @@ La oferta líder reserva dinero y un cupo. Cada oferta válida en los últimos c
 1. En Supabase → SQL Editor → New query, ejecutar **supabase/migrations/20261118_auctions.sql**.
 2. En otra consulta nueva ejecutar **supabase/migrations/20261118_auctions_scheduler.sql**. El resultado `cierre_automatico_configurado` debe ser `true`. Instala/activa Supabase Cron; requiere ejecutar como propietario desde SQL Editor.
 3. Publicar en GitHub los archivos actualizados manteniendo las carpetas, incluido **js/auctions.js**, y esperar el despliegue habitual de Vercel. Si se usan entregas ZIP, seguir el LEEME del paquete.
-4. Entrar a Mercado → Subastas; no debe aparecer aviso de cierre automático sin configurar. Crear una subasta de prueba y ofertar con una cuenta de DT asignado.
+4. Entrar a Subastas desde el menú principal; no debe aparecer aviso de cierre automático sin configurar. Crear una subasta de prueba y ofertar con una cuenta de DT asignado.
 
 No reemplazar consultas anteriores, no volver a ejecutar schema_v2.sql ni reset. No se borran clubes, jugadores, temporada ni operaciones existentes. Se requiere la migración de Option File ya instalada.
 
