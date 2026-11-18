@@ -9,10 +9,10 @@
 
   // ---------------- MERCADO ----------------
   let mTab = 'transferibles';
-  A.mTab = (k) => { if(k==='subastas'){ location.hash=`#/s/${S.sid}/subastas`;return;} mTab = k; U.route(); };
+  A.mTab = (k) => { mTab = k; U.route(); };
   register('mercado', async () => {
     const my = S.myClub; const s = S.season; const routeHash=location.hash;
-    const tabs = [['transferibles', 'Transferibles'], ['cedibles', 'Cedibles'], ['libres', 'Agentes libres'], ['subastas', 'Subastas'], ['ofertas', `Mis negociaciones${my ? pendingCount() : ''}`], ['espera', `Lista de espera (${S.queue.length})`], ['historial', 'Últimos pases']];
+    const tabs = [['transferibles', 'Transferibles'], ['cedibles', 'Cedibles'], ['libres', 'Agentes libres'], ['ofertas', `Mis negociaciones${my ? pendingCount() : ''}`], ['espera', `Lista de espera (${S.queue.length})`], ['historial', 'Últimos pases']];
     const head = pageHead('Mercado de pases', esc(s.name), `<span class="badge ${s.market_open ? 'green' : 'red'}" style="font-size:13px;padding:6px 12px">${s.market_open ? 'Mercado abierto' : 'Mercado cerrado'}</span>`) +
       (!s.market_open ? `<div class="alert warn"><b>${esc(s.market_label || 'Mercado cerrado')}.</b> Podés negociar y acordar, pero los pases, fichajes y liberaciones se ejecutan cuando el staff abra el próximo mercado.</div>` : '') +
       (!S.user ? '<div class="alert info"><a href="#/login">Ingresá</a> para participar del mercado.</div>' : (!my ? '<div class="alert info">No dirigís ningún equipo en esta temporada; podés mirar el mercado.</div>' : `<div class="alert info row between"><span>${clubLabel(my, false)} · Disponible: <span class="money">${fmt(available(my))}</span>${Number(myST()?.reserved) ? ` <span class="muted small">(reservado ${fmtM(myST().reserved)})</span>` : ''}</span><span>Plantel: <b>${squadCountLabel(my)}</b></span></div>`));

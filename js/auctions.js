@@ -17,7 +17,7 @@
     S.auctionsTouched=true;
     if(poll)clearInterval(poll);if(tick)clearInterval(tick);
     const v=view={sid:S.sid,hash:location.hash,id:id||null,filter:'open',feed:{auctions:[],teams:[]},offset:0,loading:false};
-    $('#app').innerHTML=pageHead('Subastas',esc(S.season.name),`<a class="btn secondary" href="#/s/${S.sid}/mercado">Volver al mercado</a>${isAdmin()&&S.season.status==='active'?'<button id="auction-create">Nueva subasta</button>':''}`)+
+    $('#app').innerHTML=pageHead('Subastas',esc(S.season.name),`${isAdmin()&&S.season.status==='active'?'<button id="auction-create">Nueva subasta</button>':''}`)+
       '<div id="auction-service"></div><p class="small muted">Pujas públicas · horarios de Argentina (UTC−3) · prórroga de 5 minutos. El ganador paga al UML Bank al adjudicar, incluso con el mercado cerrado.</p>'+
       (id?'<div id="auction-detail"></div>':'<div class="tabs" id="auction-tabs"><button data-au-filter="open" class="active">Abiertas y programadas</button><button data-au-filter="finished">Finalizadas</button><button data-au-filter="all">Todas</button></div><div id="auction-list"></div>');
     if($('#auction-create'))$('#auction-create').onclick=()=>openPicker();

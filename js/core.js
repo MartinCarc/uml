@@ -138,7 +138,7 @@ window.U = (() => {
   // ---------------- router ----------------
   const routes = {}; // name -> fn(params)
   function register(name, fn) { routes[name] = fn; }
-  const NAV = [['inicio', 'Inicio'], ['tabla', 'Tabla'], ['fixture', 'Fixture'], ['stats', 'Estadísticas'], ['equipos', 'Equipos'], ['mercado', 'Mercado'], ['option-file', 'Option File'], ['mi-equipo', 'Mi equipo'], ['mis-partidos', 'Mis partidos'], ['banco', 'UML Bank'], ['admin', 'Admin']];
+  const NAV = [['inicio', 'Inicio'], ['tabla', 'Tabla'], ['fixture', 'Fixture'], ['stats', 'Estadísticas'], ['equipos', 'Equipos'], ['mercado', 'Mercado'], ['subastas', 'Subastas'], ['option-file', 'Option File'], ['mi-equipo', 'Mi equipo'], ['mis-partidos', 'Mis partidos'], ['banco', 'UML Bank'], ['admin', 'Admin']];
   function renderNav(active) {
     const nav = $('#nav');
     if (!S.sid || !S.season) nav.innerHTML = `<a href="#/">Inicio</a><a href="#/option-file" class="${active === 'option-file' ? 'active' : ''}">Option File</a>`;
@@ -167,7 +167,7 @@ window.U = (() => {
         else S.myClub = S.user ? (S.seasonTeams.find((t) => t.manager_id === S.user.id)?.club_id || null) : null;
         const map = { inicio: 'home-season', tabla: 'tabla', fixture: 'fixture', stats: 'stats', equipos: 'equipos', equipo: 'equipo', partido: 'partido', mercado: 'mercado', 'mi-equipo': 'mi-equipo', 'mis-partidos': 'mis-partidos', banco: 'banco', admin: 'admin', jugador: 'jugador', pizarra: 'pizarra', subastas: 'subastas' };
         U.themeForRoute?.(page,parts[3]);
-        renderNav(page === 'subastas' ? 'mercado' : page === 'equipo' ? 'equipos' : page === 'partido' ? 'fixture' : page);
+        renderNav(page === 'equipo' ? 'equipos' : page === 'partido' ? 'fixture' : page);
         const fn = routes[map[page]];
         if (!fn) return (app.innerHTML = '<div class="empty">Página inexistente.</div>');
         return await fn(parts[3], parts[4]);
