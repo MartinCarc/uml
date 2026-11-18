@@ -9,10 +9,10 @@
 
   // ---------------- MERCADO ----------------
   let mTab = 'transferibles';
-  A.mTab = (k) => { mTab = k; U.route(); };
-  register('mercado', () => {
-    const my = S.myClub; const s = S.season;
-    const tabs = [['transferibles', 'Transferibles'], ['cedibles', 'Cedibles'], ['libres', 'Agentes libres'], ['ofertas', `Mis negociaciones${my ? pendingCount() : ''}`], ['espera', `Lista de espera (${S.queue.length})`], ['historial', 'Últimos pases']];
+  A.mTab = (k) => { if(k==='subastas'){ location.hash=`#/s/${S.sid}/subastas`;return;} mTab = k; U.route(); };
+  register('mercado', async () => {
+    const my = S.myClub; const s = S.season; const routeHash=location.hash;
+    const tabs = [['transferibles', 'Transferibles'], ['cedibles', 'Cedibles'], ['libres', 'Agentes libres'], ['subastas', 'Subastas'], ['ofertas', `Mis negociaciones${my ? pendingCount() : ''}`], ['espera', `Lista de espera (${S.queue.length})`], ['historial', 'Últimos pases']];
     const head = pageHead('Mercado de pases', esc(s.name), `<span class="badge ${s.market_open ? 'green' : 'red'}" style="font-size:13px;padding:6px 12px">${s.market_open ? 'Mercado abierto' : 'Mercado cerrado'}</span>`) +
       (!s.market_open ? `<div class="alert warn"><b>${esc(s.market_label || 'Mercado cerrado')}.</b> Podés negociar y acordar, pero los pases, fichajes y liberaciones se ejecutan cuando el staff abra el próximo mercado.</div>` : '') +
       (!S.user ? '<div class="alert info"><a href="#/login">Ingresá</a> para participar del mercado.</div>' : (!my ? '<div class="alert info">No dirigís ningún equipo en esta temporada; podés mirar el mercado.</div>' : `<div class="alert info row between"><span>${clubLabel(my, false)} · Disponible: <span class="money">${fmt(available(my))}</span>${Number(myST()?.reserved) ? ` <span class="muted small">(reservado ${fmtM(myST().reserved)})</span>` : ''}</span><span>Plantel: <b>${squadCountLabel(my)}</b></span></div>`));
@@ -21,8 +21,11 @@
       const list = S.players.filter((p) => p.club_id && (mTab === 'transferibles' ? p.transfer_listed : p.loan_listed) && !p.loan_from_club_id).sort((a, b) => (b.overall || 0) - (a.overall || 0));
       body = list.length ? playersTable(list, { price: true, club: true, actions: (p) => my && p.club_id !== my ? `<button class="sm" onclick="A.offerModal('${p.club_id}','${p.id}',${mTab === 'cedibles'})">${mTab === 'cedibles' ? 'Pedir cesión' : 'Ofertar'}</button>` : '' }) : `<div class="empty">No hay jugadores ${mTab} por ahora. Entrá a cualquier equipo para ofertar por un jugador que no esté en lista.</div>`;
     } else if (mTab === 'libres') {
+      let auctionPlayers=[];
+      try { const result=await sb().from('auctions').select('player_id,pes_id').eq('status','open'); if(!result.error) auctionPlayers=result.data||[]; } catch (_) {}
+      if(location.hash!==routeHash)return;
       const list = S.players.filter((p) => !p.club_id).sort((a, b) => (b.overall || 0) - (a.overall || 0));
-      body = `<p class="muted small">Los agentes libres se fichan sin costo. ${s.market_open ? '' : 'Con el mercado cerrado, el fichaje queda en lista de espera.'}</p>` + (list.length ? playersTable(list, { actions: (p) => my ? (S.queue.some((q) => q.player_id === p.id) ? '<span class="badge">En espera</span>' : `<button class="sm" onclick="A.sign('${p.id}')">Fichar</button>`) : '' }) : '<div class="empty">No hay agentes libres.</div>');
+      body = `<p class="muted small">Los agentes libres se fichan sin costo. ${s.market_open ? '' : 'Con el mercado cerrado, el fichaje queda en lista de espera.'}</p>` + (list.length ? playersTable(list, { actions: (p) => my ? (auctionPlayers.some(a=>a.player_id===p.id || (p.option_file_id && Number(a.pes_id)===Number(p.option_file_id))) ? '<span class="badge">En subasta</span>' : S.queue.some((q) => q.player_id === p.id) ? '<span class="badge">En espera</span>' : `<button class="sm" onclick="A.sign('${p.id}')">Fichar</button>`) : '' }) : '<div class="empty">No hay agentes libres.</div>');
     } else if (mTab === 'ofertas') body = offersPanel();
     else if (mTab === 'espera') {
       body = S.queue.length ? `<table><thead><tr><th>Tipo</th><th>Detalle</th><th>Equipo</th><th>Desde</th></tr></thead><tbody>${S.queue.map((q) => { const o = q.kind === 'offer' ? S.offers.find((x) => x.id === q.ref_id) : null; return `<tr><td><span class="badge">${{ offer: 'Pase', free_sign: 'Fichaje libre', release: 'Liberación', auction: 'Subasta', raffle: 'Sorteo', training: 'Gimnasio' }[q.kind]}</span></td><td>${o ? offerSummary(o) : esc(player(q.player_id)?.name || '')}</td><td>${q.club_id ? clubLabel(q.club_id) : ''}</td><td class="muted small">${date(q.created_at)}</td></tr>`; }).join('')}</tbody></table>` : '<div class="empty">No hay operaciones esperando el próximo mercado.</div>';

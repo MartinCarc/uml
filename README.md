@@ -267,3 +267,23 @@ La actualización sincroniza únicamente datos deportivos mediante el ID del EDI
 En una temporada en preparación, Admin → Jugadores ofrece alta manual y **Elegir desde Option File**. También hay acceso por club en Clubes y DTs. Seleccionar el club del EDIT y los jugadores, revisar valor/dorsal y confirmar. No se sustituye un plantel existente; solo se incorporan seleccionados sin duplicar IDs. Para jugadores creados manualmente usar **Vincular a un jugador UML existente** en la ficha Option File correspondiente.
 
 El CSV inicial contiene 12.089 jugadores y 71 espacios de ID 0. El exportador añadió una columna vacía de más en R. Ivanov: se normaliza y se avisa antes de publicar, conservando sus atributos comprobados con el EDIT. Otras filas inválidas se avisan y los IDs repetidos bloquean la carga. El cálculo principal del editor da 83 a Havertz y 100 a Barella/Maradona; esos valores se conservan sin usar el promedio entre paréntesis. No se copian precios internos del editor a la economía UML.
+
+
+## Subastas públicas
+
+Accesos: **Mercado → Subastas** y **Admin → Subastas**. Conserva el estilo existente. El administrador selecciona un jugador disponible del Option File, establece precio inicial, incremento mínimo e inicio/cierre (hora de Argentina). Puede editar antes de la primera puja o cancelar con motivo; el historial se conserva. Solo el DT asignado al club puede pujar. Las pujas son públicas y vinculantes.
+
+La oferta líder reserva dinero y un cupo. Cada oferta válida en los últimos cinco minutos deja cinco minutos nuevos. Al adjudicar se cobra al ganador y se acredita UML Bank una sola vez. Con mercado abierto se entrega inmediatamente; cerrado, se entrega al abrirlo, sin nuevo cobro. Sin ofertas no se crea un jugador ni se mueve dinero. Actualizar el Option File conserva estas operaciones y sus valores.
+
+### Instalación sobre la app existente
+
+1. En Supabase → SQL Editor → New query, ejecutar **supabase/migrations/20261118_auctions.sql**.
+2. En otra consulta nueva ejecutar **supabase/migrations/20261118_auctions_scheduler.sql**. El resultado `cierre_automatico_configurado` debe ser `true`. Instala/activa Supabase Cron; requiere ejecutar como propietario desde SQL Editor.
+3. Publicar en GitHub los archivos actualizados manteniendo las carpetas, incluido **js/auctions.js**, y esperar el despliegue habitual de Vercel. Si se usan entregas ZIP, seguir el LEEME del paquete.
+4. Entrar a Mercado → Subastas; no debe aparecer aviso de cierre automático sin configurar. Crear una subasta de prueba y ofertar con una cuenta de DT asignado.
+
+No reemplazar consultas anteriores, no volver a ejecutar schema_v2.sql ni reset. No se borran clubes, jugadores, temporada ni operaciones existentes. Se requiere la migración de Option File ya instalada.
+
+**Cierre sin visitantes:** Supabase → Integrations → Cron debe mostrar `uml-auctions-close` activo, ejecutándose cada minuto. Las pujas se rechazan exactamente al vencer el plazo; la adjudicación y el cobro se procesan en el siguiente ciclo (normalmente dentro del minuto posterior). Si una adjudicación encuentra una inconsistencia, no hace cobros parciales: deja un aviso administrativo y reintenta en el siguiente ciclo. No editar/eliminar esa tarea ni desactivar Cron mientras haya subastas abiertas.
+
+**Pruebas locales:** `cd tests && npm ci && npm test && npm run test:browser`. La suite de subastas verifica reservas, cupos, roles, prórrogas, pagos exactos, entrega diferida, repetición y permisos con PostgreSQL local mediante PGlite. La prueba de navegador usa respuestas de prueba y no conecta con producción. PGlite no incluye pg_cron: la ejecución real de la tarea se verifica en Supabase después de instalar la segunda consulta.

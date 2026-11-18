@@ -1,0 +1,55 @@
+UML — SUBASTAS PÚBLICAS
+
+INSTALACIÓN (sobre la aplicación que ya funciona)
+
+1. Descomprimí este ZIP.
+2. En Supabase → SQL Editor → New query, pegá y ejecutá:
+   supabase/migrations/20261118_auctions.sql
+3. Abrí OTRA consulta nueva y ejecutá:
+   supabase/migrations/20261118_auctions_scheduler.sql
+   Debe devolver cierre_automatico_configurado = true.
+   Esta segunda consulta activa el cierre automático en el servidor.
+4. Subí los archivos del paquete al repositorio MartinCarc/uml, respetando
+   las carpetas js/, supabase/migrations/ y tests/. Confirmá el cambio en GitHub
+   y esperá el despliegue de Vercel. No subas todo dentro de una carpeta extra.
+   Es esencial subir index.html y js/auctions.js junto con los demás cambios.
+5. Entrá a Mercado → Subastas. También está en Admin → Subastas.
+   Si ves el aviso de cierre automático, revisá el paso 3.
+
+No reemplaces consultas anteriores ni ejecutes schema_v2.sql o reset.
+Subir los SQL a GitHub sirve para conservarlos: NO los ejecuta en Supabase.
+La instalación conserva tus clubes, planteles, temporada y operaciones.
+La migración de Option File debe estar instalada previamente.
+
+PARA PROBAR
+
+- Como administrador: Nueva subasta → buscar jugador del Option File → Elegir.
+  Colocá precio inicial, incremento mínimo y fechas/horas de Argentina.
+- Entrá con el DT asignado a un club y ofertá. El administrador solo puede
+  ofertar si además tiene un club asignado como DT.
+- La oferta líder reserva dinero y un cupo. Otra puja válida libera la reserva
+  anterior. No se cobra hasta adjudicar.
+- Cada oferta válida en los últimos 5 minutos deja otros 5 minutos.
+- Al adjudicar se cobra al ganador y se acredita UML Bank inmediatamente.
+  Si el mercado está cerrado, el jugador espera la apertura; no se cobra otra vez.
+- Sin ofertas no se cobra ni se agrega un jugador al plantel.
+- Las pujas/historial son públicos. Solo el administrador publica/edita/cancela;
+  después de la primera puja no puede editar condiciones. Cancelar exige motivo.
+
+CIERRE AUTOMÁTICO
+
+Supabase → Integrations → Cron: tarea uml-auctions-close activa cada minuto.
+Las pujas dejan de aceptarse exactamente al vencer el plazo; la adjudicación
+se registra en el siguiente ciclo, normalmente dentro del minuto posterior,
+aunque nadie tenga abierta la web. No desactives la tarea con subastas abiertas.
+
+VERIFICACIÓN REAL TRAS INSTALAR
+
+En una subasta de prueba con una puja ganadora, esperá los 5 minutos que deja
+la última puja, cerrá las pestañas y revisá después el pago, UML Bank y la lista
+de espera/plantel. En Supabase Cron podés consultar las ejecuciones del trabajo.
+Las pruebas realizadas aquí fueron locales: no se ejecutó SQL ni se publicó
+este cambio en tu Supabase/GitHub/Vercel.
+
+Este paquete incluye las pruebas y las reglas actualizadas en AGENTS.md.
+Los archivos de tests no necesitan ejecutarse para usar la web.

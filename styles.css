@@ -265,3 +265,9 @@ html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !im
   .userbox > a:nth-child(2) { min-width:0; max-width:100px; overflow:hidden; text-overflow:ellipsis; }
   .userbox .avatar { flex-shrink:0; }
 }
+
+.auction-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr)); gap:16px; margin-bottom:18px; }
+.auction-grid > .card { margin-bottom:0; }
+.auction-countdown { font-variant-numeric:tabular-nums; font-weight:700; }
+#auction-summary .stat .v { font-size:26px; overflow-wrap:anywhere; }
+#auction-summary .stat { max-width:100%; }

@@ -14,3 +14,8 @@ Para la interfaz: `python sponsors-browser.py` desde esta carpeta. Requiere Pyth
 `python competition-theme-browser.py` comprueba cinco paletas, contraste de los colores principales, cambios de competencia, partidos/rankings, restauración del tema UML, carga del logo, imagen sin recortar, fallback y ausencia de desbordamiento en celular. Usa datos simulados y no los logos originales del usuario.
 
 `node formation-instructions.mjs` comprueba persistencia, permisos, responsables titulares, texto, compatibilidad y temporadas cerradas. `python formation-browser.py` comprueba el editor, el guardado conjunto, la limpieza de funciones al quitar jugadores, retención tras un error, texto seguro, consulta del simulador y diseño móvil.
+
+
+`node auctions.mjs` verifica subastas públicas con PostgreSQL local: roles, reservas de saldo/cupo, puja propia y superada, incremento, vencimiento, prórrogas, cancelación, no ofertas, adjudicación club→UML Bank exactamente una vez, entrega posterior sin segundo cobro, reutilización del UUID, protección frente a fichajes paralelos e intercambios ordinarios con cupos reservados. Cron no existe en PGlite: se simula solo su tabla de configuración y se invoca el proceso real de cierre explícitamente. La ejecución programada real queda pendiente de instalar/verificar en Supabase.
+
+`python auctions-browser.py` prueba navegación Mercado/Subastas, selector Option File y condiciones del administrador, horarios de Argentina, permisos del DT, pujas/historial públicos, conservación del importe escrito durante las actualizaciones, estado de incorporación pagada, cancelación, advertencia de Cron y ancho móvil. Usa respuestas simuladas, sin producción. `npm run test:browser` ejecuta todas las pruebas de navegador.
