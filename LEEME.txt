@@ -1,19 +1,8 @@
-UML — COLORES DE POSICIONES Y MEDIA EN CABECERA
+Reemplazá styles.css y AGENTS.md en la raíz del repositorio GitHub,
+donde está index.html. Esperá el despliegue de Vercel y recargá (Ctrl+F5).
+No requiere SQL ni archivos JavaScript nuevos.
 
-1. Descomprimí el ZIP.
-2. En la raíz del repositorio de GitHub (donde está index.html), reemplazá
-   styles.css y AGENTS.md con los de este paquete.
-3. Confirmá los cambios, esperá el despliegue de Vercel y recargá la página.
-   Si seguís viendo el estilo anterior, probá Ctrl+F5.
-
-No necesita consultas SQL ni cambios en la carpeta js.
-
-Las posiciones tienen fondo de su color y letras blancas:
-ARQ naranja, defensores azul, mediocampistas verde y delanteros rojo.
-La media en la cabecera conserva su color PES, sin recuadro blanco y con
-contorno blanco fino en los números. También se aplica a la ficha Option File.
-Las habilidades y tablas mantienen sus recuadros claros.
-Se conservan los tamaños, la distribución 2×2 y los colores exteriores de las
-fichas de Formación. No cambian medias, posiciones ni ningún dato guardado.
-
-Verificado en navegador local en escritorio y móvil; no se modificó producción.
+La media en cabeceras UML y Option File usa fondo del color de su rango
+PES y número blanco, sin contorno. Por debajo de 75 el fondo es negro.
+Se conservan posiciones, tamaños, indicadores 2×2, habilidades y tablas.
+Verificado en navegador local en escritorio y móvil; falta publicar.
