@@ -1,13 +1,19 @@
-UML — SUBASTAS EN EL MENÚ PRINCIPAL
+UML — COLORES DE POSICIONES Y MEDIA EN CABECERA
 
-Este cambio se aplica después del paquete de subastas anterior.
+1. Descomprimí el ZIP.
+2. En la raíz del repositorio de GitHub (donde está index.html), reemplazá
+   styles.css y AGENTS.md con los de este paquete.
+3. Confirmá los cambios, esperá el despliegue de Vercel y recargá la página.
+   Si seguís viendo el estilo anterior, probá Ctrl+F5.
 
-Subí los archivos de este ZIP a GitHub respetando las carpetas:
-js/core.js, js/market.js y js/auctions.js reemplazan sus versiones anteriores.
-AGENTS.md y README.md conservan las indicaciones actualizadas.
-Esperá el despliegue habitual de Vercel y recargá la página.
+No necesita consultas SQL ni cambios en la carpeta js.
 
-Subastas aparece entre Mercado y Option File, con su propia selección activa.
-Se quitó la pestaña Subastas de Mercado. El atajo de Admin se conserva.
-Este ajuste de menú NO necesita nuevas consultas SQL.
-Si todavía no instalaste las subastas, primero instalá el paquete completo.
+Las posiciones tienen fondo de su color y letras blancas:
+ARQ naranja, defensores azul, mediocampistas verde y delanteros rojo.
+La media en la cabecera conserva su color PES, sin recuadro blanco y con
+contorno blanco fino en los números. También se aplica a la ficha Option File.
+Las habilidades y tablas mantienen sus recuadros claros.
+Se conservan los tamaños, la distribución 2×2 y los colores exteriores de las
+fichas de Formación. No cambian medias, posiciones ni ningún dato guardado.
+
+Verificado en navegador local en escritorio y móvil; no se modificó producción.

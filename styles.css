@@ -238,12 +238,12 @@ html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !im
 .pes-card-list .badge { flex:none; }
 
 /* Fixed position colors across competitions, tables, selectors and the formation. */
-.position { background:#fff; border:1px solid currentColor; font-weight:800; }
-.position--keeper { color:#b94e00; }
-.position--defender { color:#1459b5; }
-.position--midfielder { color:#177337; }
-.position--forward { color:#c51f32; }
-.position--unknown { color:#53637c; }
+.badge.position { background:var(--position-color,#53637c); border:1px solid var(--position-color,#53637c); color:#fff; font-weight:800; }
+.position--keeper { --position-color:#b94e00; color:var(--position-color); }
+.position--defender { --position-color:#1459b5; color:var(--position-color); }
+.position--midfielder { --position-color:#177337; color:var(--position-color); }
+.position--forward { --position-color:#c51f32; color:var(--position-color); }
+.position--unknown { --position-color:#53637c; color:var(--position-color); }
 .position-select { font-weight:700; }
 .position-option { background:#fff; }
 .tactics-disc .position { font-family:inherit; font-size:12px; padding:2px 3px; border:0; border-radius:3px; line-height:1; }
@@ -279,3 +279,6 @@ html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !im
 .player-label > span:last-child { min-width:0; overflow-wrap:anywhere; }
 .player-face--large { border:3px solid #fff; }
 .tactics-name .player-face { margin-right:3px; }
+
+/* Media de cabecera: sin placa blanca, contorno fino sobre el color PES. */
+.card.navy .stat .pes-rating { background:transparent; border:0; border-radius:0; -webkit-text-stroke:.65px #fff; paint-order:stroke fill; text-shadow:0 0 1px #ffffff99; }
