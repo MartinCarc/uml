@@ -5,6 +5,7 @@ const PES=createRequire(import.meta.url)('../js/pes13.js');
 const db=await database();
 await db.exec(sql('supabase/migrations/20261109_option_file.sql'));
 await db.exec(sql('supabase/migrations/20261118_auctions.sql'));
+await db.exec(sql('supabase/migrations/20261118_player_photos.sql'));
 const admin=(await db.query("insert into auth.users(id,email,raw_user_meta_data) values(gen_random_uuid(),'auction-admin@test.local','{}') returning id")).rows[0].id;
 const dt1=(await db.query("insert into auth.users(id,email,raw_user_meta_data) values(gen_random_uuid(),'dt1@test.local','{}') returning id")).rows[0].id;
 const dt2=(await db.query("insert into auth.users(id,email,raw_user_meta_data) values(gen_random_uuid(),'dt2@test.local','{}') returning id")).rows[0].id;

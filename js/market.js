@@ -28,7 +28,7 @@
       body = `<p class="muted small">Los agentes libres se fichan sin costo. ${s.market_open ? '' : 'Con el mercado cerrado, el fichaje queda en lista de espera.'}</p>` + (list.length ? playersTable(list, { actions: (p) => my ? (auctionPlayers.some(a=>a.player_id===p.id || (p.option_file_id && Number(a.pes_id)===Number(p.option_file_id))) ? '<span class="badge">En subasta</span>' : S.queue.some((q) => q.player_id === p.id) ? '<span class="badge">En espera</span>' : `<button class="sm" onclick="A.sign('${p.id}')">Fichar</button>`) : '' }) : '<div class="empty">No hay agentes libres.</div>');
     } else if (mTab === 'ofertas') body = offersPanel();
     else if (mTab === 'espera') {
-      body = S.queue.length ? `<table><thead><tr><th>Tipo</th><th>Detalle</th><th>Equipo</th><th>Desde</th></tr></thead><tbody>${S.queue.map((q) => { const o = q.kind === 'offer' ? S.offers.find((x) => x.id === q.ref_id) : null; return `<tr><td><span class="badge">${{ offer: 'Pase', free_sign: 'Fichaje libre', release: 'Liberación', auction: 'Subasta', raffle: 'Sorteo', training: 'Gimnasio' }[q.kind]}</span></td><td>${o ? offerSummary(o) : esc(player(q.player_id)?.name || '')}</td><td>${q.club_id ? clubLabel(q.club_id) : ''}</td><td class="muted small">${date(q.created_at)}</td></tr>`; }).join('')}</tbody></table>` : '<div class="empty">No hay operaciones esperando el próximo mercado.</div>';
+      body = S.queue.length ? `<table><thead><tr><th>Tipo</th><th>Detalle</th><th>Equipo</th><th>Desde</th></tr></thead><tbody>${S.queue.map((q) => { const o = q.kind === 'offer' ? S.offers.find((x) => x.id === q.ref_id) : null; return `<tr><td><span class="badge">${{ offer: 'Pase', free_sign: 'Fichaje libre', release: 'Liberación', auction: 'Subasta', raffle: 'Sorteo', training: 'Gimnasio' }[q.kind]}</span></td><td>${o ? offerSummary(o) : U.playerLabel(player(q.player_id))}</td><td>${q.club_id ? clubLabel(q.club_id) : ''}</td><td class="muted small">${date(q.created_at)}</td></tr>`; }).join('')}</tbody></table>` : '<div class="empty">No hay operaciones esperando el próximo mercado.</div>';
     } else {
       const hist = S.offers.filter((o) => o.status === 'executed').slice(0, 40);
       body = hist.length ? hist.map((o) => `<div class="list-item"><div>${offerSummary(o)}</div><span class="muted small">${date(o.executed_at)}</span></div>`).join('') : '<div class="empty">Todavía no hubo pases.</div>';
@@ -38,10 +38,10 @@
   const pendingCount = () => { const n = S.offers.filter((o) => o.status === 'pending' && o.responder_turn === S.myClub).length; return n ? ` (${n})` : ''; };
   const squadCountLabel = (cid) => { const n = squad(cid).length; const lim = cfg().squad_limit; const pend = S.queue.filter((q) => q.club_id === cid && ['free_sign', 'auction', 'raffle'].includes(q.kind)).length; return `<span style="color:${n >= lim ? 'var(--red)' : 'inherit'}">${n}/${lim}</span>${pend ? ` <span class="muted small">+${pend} por ingresar</span>` : ''}`; };
   function playersTable(list, opts = {}) {
-    return `<table><thead><tr><th>Pos</th><th>Jugador</th>${opts.club ? '<th>Equipo</th>' : ''}<th class="num">Edad</th><th class="num">Media</th>${opts.price ? '<th class="num">Valor</th>' : ''}<th></th></tr></thead><tbody>${list.map((p) => `<tr><td>${U.positionBadge(p.position)}</td><td><a href="#/s/${S.sid}/jugador/${p.id}" style="color:inherit"><b>${esc(p.name)}</b></a> ${sancBadges(p.id)}</td>${opts.club ? `<td>${clubLabel(p.club_id)}</td>` : ''}<td class="num">${p.age}</td><td class="num">${U.rating(p.overall, true)}</td>${opts.price ? `<td class="num">${fmtM(p.value)}</td>` : ''}<td class="right">${opts.actions ? opts.actions(p) : ''}</td></tr>`).join('')}</tbody></table>`;
+    return `<table><thead><tr><th>Pos</th><th>Jugador</th>${opts.club ? '<th>Equipo</th>' : ''}<th class="num">Edad</th><th class="num">Media</th>${opts.price ? '<th class="num">Valor</th>' : ''}<th></th></tr></thead><tbody>${list.map((p) => `<tr><td>${U.positionBadge(p.position)}</td><td><a href="#/s/${S.sid}/jugador/${p.id}" style="color:inherit"><b>${U.playerLabel(p)}</b></a> ${sancBadges(p.id)}</td>${opts.club ? `<td>${clubLabel(p.club_id)}</td>` : ''}<td class="num">${p.age}</td><td class="num">${U.rating(p.overall, true)}</td>${opts.price ? `<td class="num">${fmtM(p.value)}</td>` : ''}<td class="right">${opts.actions ? opts.actions(p) : ''}</td></tr>`).join('')}</tbody></table>`;
   }
   function offerSummary(o) {
-    const names = (ids) => (ids || []).map((id) => `<b>${esc(player(id)?.name || '?')}</b>`).join(', ');
+    const names = (ids) => (ids || []).map((id) => `<b>${U.playerLabel(player(id))}</b>`).join(', ');
     const parts = [];
     if (o.players_ask?.length) parts.push(`${o.is_loan ? 'cesión de ' : ''}${names(o.players_ask)} de ${esc(club(o.seller_club_id)?.name)}`);
     if (o.players_give?.length) parts.push(`${names(o.players_give)} de ${esc(club(o.buyer_club_id)?.name)}`);
@@ -68,7 +68,7 @@
   // ---------------- constructor de ofertas ----------------
   function offerForm(sellerId, prefill = {}) {
     const my = S.myClub; const mySquad = squad(my).filter((p) => !p.loan_from_club_id); const theirSquad = squad(sellerId).filter((p) => !p.loan_from_club_id);
-    const check = (p, name, sel) => `<label class="check"><input type="checkbox" name="${name}" value="${p.id}" ${sel?.includes(p.id) ? 'checked' : ''}> ${U.positionBadge(p.position)} ${esc(p.name)} <span class="muted tiny">${U.rating(p.overall, true)}${' · ' + fmtM(p.value)}</span></label>`;
+    const check = (p, name, sel) => `<label class="check"><input type="checkbox" name="${name}" value="${p.id}" ${sel?.includes(p.id) ? 'checked' : ''}> ${U.positionBadge(p.position)} ${U.playerLabel(p)} <span class="muted tiny">${U.rating(p.overall, true)}${' · ' + fmtM(p.value)}</span></label>`;
     return `
       <div class="kicker mb">Pido de ${esc(club(sellerId)?.name)}</div><div class="check-list mb">${theirSquad.map((p) => check(p, 'ask', prefill.ask)).join('')}</div>
       ${prefill.loan ? '' : `<div class="kicker mb">Entrego de mi equipo (opcional)</div><div class="check-list mb">${mySquad.map((p) => check(p, 'give', prefill.give)).join('')}</div>`}
@@ -90,7 +90,7 @@
     const o = S.offers.find((x) => x.id === oid); const iAmSeller = o.seller_club_id === S.myClub;
     // el formulario siempre se expresa desde el comprador original; si soy el vendedor, invierto la vista
     const sellerId = o.seller_club_id; const buyerId = o.buyer_club_id;
-    const check = (p, name, sel) => `<label class="check"><input type="checkbox" name="${name}" value="${p.id}" ${sel?.includes(p.id) ? 'checked' : ''}> ${U.positionBadge(p.position)} ${esc(p.name)} <span class="muted tiny">${U.rating(p.overall, true)}</span></label>`;
+    const check = (p, name, sel) => `<label class="check"><input type="checkbox" name="${name}" value="${p.id}" ${sel?.includes(p.id) ? 'checked' : ''}> ${U.positionBadge(p.position)} ${U.playerLabel(p)} <span class="muted tiny">${U.rating(p.overall, true)}</span></label>`;
     modal(`<h2>Contraoferta</h2><p class="muted small">Propuesta actual: ${offerSummary(o)}</p>
       <form onsubmit="A.sendCounter(event,'${oid}')">
         <div class="kicker mb">Jugadores de ${esc(club(sellerId)?.name)} que pasan a ${esc(club(buyerId)?.name)}</div><div class="check-list mb">${squad(sellerId).filter((p) => !p.loan_from_club_id).map((p) => check(p, 'ask', o.players_ask)).join('')}</div>
@@ -125,7 +125,7 @@
       const used = (pid) => (tr || []).filter((x) => x.player_id === pid);
       const elig = squad(my).filter((p) => !p.loan_from_club_id && p.age <= 24);
       body = `<div class="alert info">Solo jugadores de hasta 24 años. 15-20 años: 3 entrenamientos por temporada; 21-24: 2. Cada entrenamiento suma +1 a la media y cuesta <b>${fmtM(conf.gym_cost)}</b> (va al UML Bank). ${S.season.market_open ? 'Se aplica al instante.' : 'Con el mercado cerrado, se paga ahora y se aplica al abrir el próximo mercado.'} Vales disponibles: <b>${t.gym_vouchers}</b>.</div>` +
-        (elig.length ? `<table><thead><tr><th>Jugador</th><th class="num">Edad</th><th class="num">Media</th><th>Entrenamientos</th><th></th></tr></thead><tbody>${elig.map((p) => { const u = used(p.id); const max = p.age <= 20 ? 3 : 2; const pend = u.filter((x) => !x.applied).length; return `<tr><td><b>${esc(p.name)}</b> ${U.positionBadge(p.position)}</td><td class="num">${p.age}</td><td class="num">${U.rating(p.overall, true)}${pend ? ` <span class="muted tiny">(+${pend} pendiente)</span>` : ''}</td><td>${u.length}/${max}</td><td class="right">${u.length < max ? `<button class="sm" onclick="A.train('${p.id}',false)">Entrenar</button> ${t.gym_vouchers > 0 ? `<button class="sm secondary" onclick="A.train('${p.id}',true)">Usar vale</button>` : ''}` : '<span class="muted tiny">sin cupo</span>'}</td></tr>`; }).join('')}</tbody></table>` : '<div class="empty">No tenés jugadores de hasta 24 años.</div>');
+        (elig.length ? `<table><thead><tr><th>Jugador</th><th class="num">Edad</th><th class="num">Media</th><th>Entrenamientos</th><th></th></tr></thead><tbody>${elig.map((p) => { const u = used(p.id); const max = p.age <= 20 ? 3 : 2; const pend = u.filter((x) => !x.applied).length; return `<tr><td><b>${U.playerLabel(p)}</b> ${U.positionBadge(p.position)}</td><td class="num">${p.age}</td><td class="num">${U.rating(p.overall, true)}${pend ? ` <span class="muted tiny">(+${pend} pendiente)</span>` : ''}</td><td>${u.length}/${max}</td><td class="right">${u.length < max ? `<button class="sm" onclick="A.train('${p.id}',false)">Entrenar</button> ${t.gym_vouchers > 0 ? `<button class="sm secondary" onclick="A.train('${p.id}',true)">Usar vale</button>` : ''}` : '<span class="muted tiny">sin cupo</span>'}</td></tr>`; }).join('')}</tbody></table>` : '<div class="empty">No tenés jugadores de hasta 24 años.</div>');
     } else {
       const { data: tx } = await sb().from('transactions').select('*').eq('club_id', my).eq('season_id', S.sid).order('created_at', { ascending: false }).limit(200);
       let bal = Number(t.budget); const rows = (tx || []).map((x) => { const r = { ...x, bal }; bal -= Number(x.amount); return r; });
@@ -138,7 +138,7 @@
   });
   A.editMyPlayer = (pid) => {
     const p = player(pid);
-    modal(`<h2>${esc(p.name)}</h2><form onsubmit="A.saveMyPlayer(event,'${pid}')">
+    modal(`<h2>${U.playerLabel(p)}</h2><form onsubmit="A.saveMyPlayer(event,'${pid}')">
       <div class="fields"><div><label>Valor (${U.CUR})</label><input name="value" type="number" min="0" step="1" value="${p.value ?? 0}" required></div><div><label>Dorsal</label><input name="number" type="number" min="1" max="99" value="${p.number ?? ''}"></div></div>
       <label class="check mb"><input type="checkbox" name="transfer" ${p.transfer_listed ? 'checked' : ''}> Transferible (aparece en el mercado)</label>
       <label class="check mb"><input type="checkbox" name="loan" ${p.loan_listed ? 'checked' : ''}> Cedible a préstamo</label>

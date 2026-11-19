@@ -76,3 +76,12 @@
 - Mercado abierto: incorporación inmediata. Mercado cerrado: incorporación ya pagada en lista de espera; abrir el mercado entrega al jugador sin segundo cobro. Sin ofertas: ningún pago ni jugador UML nuevo. Una cancelación libera reservas y conserva el historial.
 - Mantener el ID del EDIT; actualizar el CSV solo sincroniza datos deportivos y no ejecuta pagos/transferencias ni altera adjudicaciones. No cerrar/borrar una temporada con lotes abiertos o entregas ya pagadas pendientes.
 - Instalar como consultas nuevas, en orden: 20261118_auctions.sql y 20261118_auctions_scheduler.sql. La tarea es uml-auctions-close. No reemplazar SQL anteriores ni ejecutar reset. La configuración real del cron y la publicación quedan pendientes de instalación por el usuario.
+
+
+## Fotos de jugadores
+
+- Foto de cara por enlace directo HTTP/HTTPS, editable por administradores desde la ficha UML y la ficha Option File. Mostrar la misma foto junto al nombre en listas de planteles, rankings, partidos, Formación, mercado/negociaciones, administración, subastas y catálogo. Mantener tamaños de texto, colores y posiciones tácticas; miniaturas pequeñas en listas y cabecera grande.
+- Sin imagen o con enlace roto: inicial del jugador, sin icono de imagen fallida. Vista previa, reemplazo y eliminación dejando vacío el enlace. No subir archivos ni guardar secretos.
+- Reutilizar players.photo_url para jugadores UML. player_portraits guarda la imagen por ID PES de forma independiente del CSV y del club; también permite cargar fotos del catálogo antes de incorporar al jugador. Los jugadores manuales sin ID usan su UUID. Heredar la foto al importar/vincular posteriormente; conservarla al transferir o actualizar habilidades. Las fotos actuales se conservan al instalar. No modificar snapshots históricos, economía, valor, planteles, contratos ni operaciones para editar una foto.
+- Componentes comunes en js/player-photos.js. Incluir el script en index.html y usar U.playerFace / U.playerLabel en vistas con jugadores; no insertar HTML en options nativos, atributos, prompts ni descripciones históricas de movimientos. Los controles nativos conservan sus nombres de texto.
+- Aplicar 20261118_player_photos.sql como consulta nueva después de Option File. Lectura pública; cambios por RPC de administrador y sincronización de players.photo_url mediante trigger. No volver a ejecutar migraciones anteriores ni resets.

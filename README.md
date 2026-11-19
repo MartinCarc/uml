@@ -287,3 +287,12 @@ No reemplazar consultas anteriores, no volver a ejecutar schema_v2.sql ni reset.
 **Cierre sin visitantes:** Supabase → Integrations → Cron debe mostrar `uml-auctions-close` activo, ejecutándose cada minuto. Las pujas se rechazan exactamente al vencer el plazo; la adjudicación y el cobro se procesan en el siguiente ciclo (normalmente dentro del minuto posterior). Si una adjudicación encuentra una inconsistencia, no hace cobros parciales: deja un aviso administrativo y reintenta en el siguiente ciclo. No editar/eliminar esa tarea ni desactivar Cron mientras haya subastas abiertas.
 
 **Pruebas locales:** `cd tests && npm ci && npm test && npm run test:browser`. La suite de subastas verifica reservas, cupos, roles, prórrogas, pagos exactos, entrega diferida, repetición y permisos con PostgreSQL local mediante PGlite. La prueba de navegador usa respuestas de prueba y no conecta con producción. PGlite no incluye pg_cron: la ejecución real de la tarea se verifica en Supabase después de instalar la segunda consulta.
+
+
+## Fotos de jugadores por enlace
+
+Aplicar **supabase/migrations/20261118_player_photos.sql** como consulta nueva en Supabase. Requiere Option File y conserva las fotos actuales. Publicar los archivos del paquete manteniendo las carpetas; incluir **index.html** y el nuevo **js/player-photos.js**.
+
+Como administrador, abrir la ficha del jugador (UML o Option File) y usar **Agregar foto** / **Cambiar foto**. Pegar un enlace directo a una imagen, revisar la vista previa y guardar. Para quitarla, dejar vacío y guardar. Los demás usuarios pueden ver las imágenes, sin editarlas. Los enlaces HTTPS evitan problemas de contenido mixto en la web publicada.
+
+El retrato aparece junto al nombre en planteles, estadísticas, partidos, Formación y suplentes, mercado y negociaciones, administración, Option File y subastas. Los selectores nativos mantienen texto. Sin imagen o con un enlace roto se muestra la inicial. El ID PES comparte la misma foto entre catálogo y plantel y la conserva al actualizar el CSV o transferir al jugador. Los jugadores manuales usan su foto UML. No cambia precios, dinero ni operaciones, ni modifica las copias históricas.

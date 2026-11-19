@@ -1,0 +1,39 @@
+UML — FOTOS DE JUGADORES POR ENLACE
+
+Este paquete actualiza la aplicación que ya tenés funcionando, con Subastas
+en el menú principal. Conserva equipos, temporada, valores y dinero.
+
+1. SUPABASE
+Abrí SQL Editor → New query y ejecutá TODO el contenido de:
+supabase/migrations/20261118_player_photos.sql
+Es UNA consulta nueva. No reemplaces consultas anteriores, no ejecutes reset
+ni vuelvas a ejecutar los SQL de subastas. Requiere Option File instalado.
+
+2. GITHUB
+Descomprimí el ZIP y respetá las carpetas al subir los archivos.
+En la raíz (donde está config.js): index.html, styles.css, AGENTS.md, README.md.
+Dentro de js/: core.js, pages.js, admin.js, market.js, tactics.js,
+option-file.js, auctions.js y el NUEVO player-photos.js.
+No reemplaces los archivos de igual nombre que están fuera de js/.
+Guardá el SQL dentro de supabase/migrations/ para conservarlo en el repositorio.
+La carpeta tests/ contiene pruebas locales y también puede subirse.
+LEEME-FOTOS.txt es solo esta guía. No subas todo dentro de otra carpeta extra.
+
+3. USO
+Esperá el despliegue de Vercel y recargá la web.
+Como administrador, abrí la ficha de un jugador y pulsá Agregar foto.
+También podés hacerlo desde la ficha del Option File.
+Pegá un enlace directo a una imagen (preferentemente HTTPS), revisá la vista
+previa y pulsá Guardar foto. Para reemplazar: Cambiar foto. Para quitarla:
+dejá el enlace vacío y guardá.
+
+Los visitantes y DTs ven la foto, pero solo el administrador puede editarla.
+La imagen se muestra junto al nombre en planteles, rankings, partidos,
+Formación/titulares/suplentes, mercado/negociaciones, administración,
+Option File y subastas. Los desplegables nativos conservan nombres de texto.
+Si falta la foto o el enlace deja de funcionar, se muestra la inicial.
+La misma foto se conserva al transferir al jugador y al actualizar el EDIT.
+No se requiere subir imágenes a Supabase Storage: se usa el enlace pegado.
+
+Las pruebas fueron locales; este paquete todavía debe instalarse/publicarse
+para que aparezca en tu web. No se modificó Supabase ni Vercel de producción.

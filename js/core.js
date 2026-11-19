@@ -156,6 +156,7 @@ window.U = (() => {
     const app = $('#app');
     if(parts[0]!=='s') U.applyCompetitionTheme?.(null);
     try {
+      await U.loadPlayerPhotos?.();
       if (parts[0] === 'option-file') { renderNav('option-file'); return await routes['option-file'](parts[1]); }
       if (parts[0] === 'login') { renderNav(null); return routes.login(); }
       if (parts[0] === 'perfil') { renderNav(null); return routes.perfil(parts[1]); }
