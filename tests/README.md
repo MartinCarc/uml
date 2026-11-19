@@ -22,3 +22,6 @@ Para la interfaz: `python sponsors-browser.py` desde esta carpeta. Requiere Pyth
 
 
 `node player-photos.mjs` verifica conservación de fotos previas, permisos, enlaces válidos, alta/edición/eliminación, foto por UUID/ID PES, persistencia al actualizar el Option File y transferir, herencia en nuevas incorporaciones, datos económicos intactos e instalación repetida. Instala también subastas para comprobar compatibilidad. `python player-photos-browser.py` verifica vista previa/guardado, fotos comunes en planteles/estadísticas/partidos/Formación/subastas/Option File, móvil, enlaces rotos, errores de guardado y visitantes sin edición. Todo se ejecuta localmente, sin producción.
+
+
+El navegador de fotos también reproduce el enlace SoFIFA reportado con una respuesta 403 simulada: comprueba el aviso, Guardar deshabilitado, ausencia de escrituras y conservación de la foto anterior. Cubre enlace no permitido, imagen accesible, solicitud anterior fallida tras cambiar a un enlace válido y reintento tras un error al persistir. El servidor externo se comprobó aparte, sin modificar producción.

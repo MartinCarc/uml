@@ -59,18 +59,38 @@ with sync_playwright() as pw:
  page.get_by_role('button',name='Cambiar foto',exact=True).wait_for()
  page.set_viewport_size({'width':390,'height':844})
  assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
- # A failed save preserves the entered link; unsafe schemes do not reach the RPC.
+ # Unloadable links are rejected before persistence, including the reported 403.
+ page.route('https://cdn.sofifa.net/**',lambda r:r.fulfill(status=403,body='Forbidden'))
  page.get_by_role('button',name='Cambiar foto',exact=True).click()
  page.locator('#player-photo-url').fill('javascript:alert(1)')
  n=page.evaluate("calls.filter(c=>c.fn==='set_player_photo').length")
- page.get_by_role('button',name='Guardar foto',exact=True).click()
+ assert page.get_by_role('button',name='Guardar foto',exact=True).is_disabled()
+ page.locator('#player-photo-url').fill('https://cdn.sofifa.net/players/192/563/27_120.png')
+ page.get_by_text('No se pudo cargar la imagen.',exact=False).wait_for()
+ assert page.get_by_role('button',name='Guardar foto',exact=True).is_disabled()
  assert page.evaluate("calls.filter(c=>c.fn==='set_player_photo').length")==n
- page.locator('#player-photo-url').fill(origin+'/missing-face.png');page.evaluate('failSave=true')
+ assert page.evaluate('player.photo_url')==origin+'/assets/logo.png'
+ # A stale request cannot approve a newer failing URL, or reject a newer valid URL.
+ held=[]
+ page.route('**/slow-portrait.png',lambda r:held.append(r))
+ page.locator('#player-photo-url').fill(origin+'/slow-portrait.png')
+ page.wait_for_function("document.querySelector('#player-photo-status').textContent.includes('Comprobando')")
+ page.wait_for_timeout(100)
+ page.locator('#player-photo-url').fill(origin+'/assets/logo.png?updated=1')
+ page.get_by_text('Imagen cargada. Ya podés guardarla.',exact=True).wait_for()
+ for r in held:r.fulfill(status=403,body='Forbidden')
+ assert page.get_by_role('button',name='Guardar foto',exact=True).is_enabled()
+ # A failed persistence request preserves a valid link for retry.
+ page.evaluate('failSave=true')
  page.get_by_role('button',name='Guardar foto',exact=True).click()
  page.get_by_text('Error de guardado de prueba',exact=True).wait_for()
- assert page.locator('#player-photo-url').input_value()==origin+'/missing-face.png'
+ assert page.locator('#player-photo-url').input_value()==origin+'/assets/logo.png?updated=1'
+ assert page.locator('#player-photo-url').is_enabled()
  page.evaluate('failSave=false')
  page.get_by_role('button',name='Guardar foto',exact=True).click()
+ page.get_by_role('button',name='Cambiar foto',exact=True).wait_for()
+ # Existing broken links retain the initial but show a useful error when edited.
+ page.evaluate("portraits=[{pes_id:54360,photo_url:location.origin+'/missing-face.png'}];player.photo_url=location.origin+'/missing-face.png';U.loadPlayerPhotos(true).then(()=>U.route())")
  page.get_by_role('button',name='Cambiar foto',exact=True).wait_for()
  page.wait_for_function("document.querySelectorAll('#app .player-face img').length===0")
  # Removing applies to the catalogue and UML, including subsequent navigation.
@@ -83,4 +103,4 @@ with sync_playwright() as pw:
  assert not errors,errors
  browser.close()
 server.shutdown()
-print('PASS: admin URL preview/save/remove, UUID/PES identity, shared photos in team/stats/match/formation/auction/Option File, mobile layout, broken-image fallback, unsafe URL rejection, failed-save retention and public read-only UI; no production connections.')
+print('PASS: admin URL preview/save/remove, UUID/PES identity, shared photos in team/stats/match/formation/auction/Option File, mobile layout, 403/image preview validation, stale-request protection, broken-image fallback, unsafe URL rejection, failed-save retention and public read-only UI; no production connections.')

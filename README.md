@@ -296,3 +296,8 @@ Aplicar **supabase/migrations/20261118_player_photos.sql** como consulta nueva e
 Como administrador, abrir la ficha del jugador (UML o Option File) y usar **Agregar foto** / **Cambiar foto**. Pegar un enlace directo a una imagen, revisar la vista previa y guardar. Para quitarla, dejar vacío y guardar. Los demás usuarios pueden ver las imágenes, sin editarlas. Los enlaces HTTPS evitan problemas de contenido mixto en la web publicada.
 
 El retrato aparece junto al nombre en planteles, estadísticas, partidos, Formación y suplentes, mercado y negociaciones, administración, Option File y subastas. Los selectores nativos mantienen texto. Sin imagen o con un enlace roto se muestra la inicial. El ID PES comparte la misma foto entre catálogo y plantel y la conserva al actualizar el CSV o transferir al jugador. Los jugadores manuales usan su foto UML. No cambia precios, dinero ni operaciones, ni modifica las copias históricas.
+
+
+### Enlaces de fotos que no cargan
+
+El formulario comprueba la imagen antes de guardar. Si no carga en diez segundos, el servidor rechaza el acceso (por ejemplo 403), devuelve un archivo que no es imagen o la dirección no existe, aparece un aviso y se conserva la foto anterior. Usar otro enlace que permita mostrar la imagen desde otras webs; que una dirección termine en PNG/JPG no garantiza acceso. No se necesita SQL adicional para este ajuste: actualizar js/player-photos.js. Los enlaces que funcionaban y la eliminación dejando vacío siguen disponibles.

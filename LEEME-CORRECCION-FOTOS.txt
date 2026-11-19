@@ -1,0 +1,32 @@
+UML — COMPROBACIÓN DE ENLACES DE FOTOS
+
+El enlace de SoFIFA reportado devolvió 403 (acceso rechazado) en la comprobación.
+El enlace queda guardado, pero el navegador no recibe una imagen y muestra la
+inicial. Esta corrección no evita bloqueos de otras webs: avisa del problema y
+comprueba que la vista previa cargue antes de permitir guardar.
+
+INSTALAR
+1. Descomprimí este ZIP.
+2. Reemplazá js/player-photos.js dentro de la carpeta js de GitHub.
+3. AGENTS.md y README.md van en la raíz; tests/ conserva las pruebas locales.
+4. Confirmá el cambio, esperá Vercel y recargá la web.
+No necesita SQL nuevo. No cambia fotos, planteles, valores ni dinero existentes.
+
+USAR
+Cambiar foto → pegar un enlace directo → esperar Imagen cargada → Guardar foto.
+Si aparece No se pudo cargar la imagen, usá otro enlace. La foto anterior se
+conserva. El campo vacío permite quitar la foto como antes.
+
+ALOJAR LA FOTO EN TU PROPIA WEB
+Para evitar depender del acceso permitido por otra web:
+- Guardá la imagen que quieras usar como leno.png.
+- En GitHub creá la carpeta assets/jugadores y subí ahí leno.png.
+- Después del despliegue de Vercel, el enlace será:
+  https://uml-pes-navy.vercel.app/assets/jugadores/leno.png
+- Pegá ese enlace en Cambiar foto y comprobá la vista previa antes de guardar.
+Ese enlace solo existirá después de subir el archivo y publicarse en Vercel.
+
+PRUEBAS
+La prueba de navegador cubre imagen válida, error 403, enlace inválido, foto
+anterior conservada, respuesta antigua tras cambiar el enlace y reintento tras
+un error al guardar. Sin conexión ni modificaciones a Supabase de producción.
