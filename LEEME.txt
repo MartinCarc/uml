@@ -1,9 +1,11 @@
-UML — PANEL DEL DT
+UML — MENÚ POR CATEGORÍA
 
-Descomprimí el ZIP y reemplazá en GitHub:
-- js/community.js y js/pages.js dentro de js/.
+Si todavía vas a publicar el Panel del DT, aplicá primero ese paquete.
+Para esta actualización reemplazá en GitHub:
+- js/core.js dentro de la carpeta js/.
 - styles.css y AGENTS.md en la raíz, junto a index.html.
 
-Esperá el despliegue de Vercel y recargá. El Panel del DT usa los datos
-ya instalados de Comunidad. No requiere una consulta SQL nueva.
-Los dos bocetos del menú se presentan por separado para elegir una opción.
+Esperá el despliegue de Vercel y recargá. No hace falta ejecutar SQL.
+El escudo original abre Inicio. Competencias, Mercado y Clubes y jugadores
+se despliegan al tocarlos. El menú se cierra con Escape, al elegir un enlace
+o al pulsar fuera.

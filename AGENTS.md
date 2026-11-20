@@ -63,7 +63,7 @@
 
 ## Subastas — decisiones confirmadas
 
-- Subastas es una sección propia del menú principal, entre Mercado y Option File, con su enlace activo independiente. No mostrar una pestaña Subastas dentro de Mercado. Conservar el atajo administrativo.
+- Subastas es una página propia accesible desde el desplegable Mercado de la barra superior, con su enlace activo independiente. No mostrar una pestaña Subastas dentro de la página Mercado de pases. Conservar el atajo administrativo.
 
 - Implementación autorizada con «Listo». El gimnasio queda para más adelante; el EDIT vigente y la temporada son de prueba y no se borran como parte de este trabajo.
 - Subastas públicas: cualquier visitante consulta jugador, clubes/DTs, importes, horarios e historial. Solo el DT asignado puja por su propio club; ser administrador no sustituye esa asignación.
@@ -111,3 +111,5 @@
 - Todas las ventanas modales deben incluir una X global accesible («Cerrar ventana»), tipo button, visible arriba a la derecha incluso al desplazar formularios largos. Escape también cierra. Cerrar descarta lo no guardado sin enviar el formulario ni ejecutar operaciones; conservar los botones Cancelar existentes. Al abrir, enfocar el primer campo; al cerrar, devolver foco al control que abrió la ventana cuando siga presente. Implementar en el componente U.modal de js/core.js, sin repetir botones en cada formulario.
 
 - Inicio usa el Panel del DT aprobado: equipo, saldo disponible, plantel y posición, con pendientes y próximo turno destacados. Ofrecer inicio público sin tarjeta de equipo y preservar comunicados, mercado, resultados, goleadores y presencia.
+
+- La barra superior usa menús por categoría: Competencias (Tabla, Fixture, Calendario, Estadísticas y Mis partidos para simuladores), Mercado (Mercado de pases, Subastas, Sorteos y UML Bank), y Clubes y jugadores (Equipos y Option File). Inicio, Mi equipo y Admin quedan directos, según corresponda al usuario. Mantener el escudo original enlazado a Inicio y los avisos junto al perfil.

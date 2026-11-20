@@ -346,3 +346,33 @@ html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !im
 @media(max-width:820px) {
   .home-dt.home-dt-public { grid-template-areas:"turn" "news" "market" "activity" "online"; }
 }
+
+/* Navegación por categorías. Los desplegables son enlaces normales. */
+.nav { position:relative; overflow:visible; flex-wrap:wrap; align-items:center; }
+.nav-group { position:relative; }
+.nav-group > summary {
+  display:flex; align-items:center; gap:8px; padding:7px 13px; border-radius:8px;
+  list-style:none; cursor:pointer; color:var(--competition-nav-ink,#c9d8f2); font-size:14px; font-weight:500;
+}
+.nav-group > summary::-webkit-details-marker { display:none; }
+.nav-group > summary::after {
+  content:''; width:5px; height:5px; border:solid currentColor; border-width:0 1.5px 1.5px 0;
+  transform:translateY(-2px) rotate(45deg);
+}
+.nav-group[open] > summary::after { transform:translateY(1px) rotate(225deg); }
+.nav-group[open] > summary, .nav-group > summary.active { background:var(--blue); color:#fff; }
+.nav-group > summary:hover { color:#fff; }
+.nav :is(summary,a):focus-visible { outline:2px solid #8fb0ee; outline-offset:2px; }
+.nav-dropdown {
+  position:absolute; z-index:1; top:calc(100% + 4px); left:0; min-width:168px;
+  background:var(--card); border:1px solid var(--line); border-radius:10px; padding:4px;
+  box-shadow:0 6px 18px #0a2a6626;
+}
+.nav .nav-group .nav-dropdown a { display:block; color:var(--navy); }
+.nav .nav-group .nav-dropdown a:hover { background:var(--tint); color:var(--navy); }
+.nav .nav-group .nav-dropdown a.active { background:var(--tint); color:var(--navy); }
+@media(max-width:700px) {
+  .nav-group { position:static; }
+  .nav-dropdown { top:100%; left:12px; right:12px; }
+  .nav-group > summary, .nav > a { padding:8px 10px; }
+}
