@@ -60,13 +60,14 @@
       <h1>${esc(U.CFG.LEAGUE_FULL_NAME || league.full_name || 'UEFA Manager League')}</h1>
       <p>La comunidad de fútbol virtual donde cada participante dirige su club, arma su plantel y define sus tácticas para competir en ligas y copas con partidos simulados en PES. Un espacio para vivir la pasión de ser DT, compartir con otros fanáticos y hacer historia con tu equipo.</p>
       <div class="row">${!S.user ? '<a class="btn" style="background:#fff;color:#0A2A66" href="#/login">Ingresar o registrarme</a>' : ''}${isAdmin() ? '<a class="btn" href="#/clubes">Administrar clubes</a><a class="btn" href="#/nueva-temporada">+ Nueva temporada</a>' : ''}</div></div></div>`;
-    if (!seasons.length) { app.innerHTML = hero + '<div class="empty">Todavía no hay temporadas creadas.</div>'; return; }
+    if (!seasons.length) { app.innerHTML = hero + '<div class="empty">Todavía no hay temporadas creadas.</div>'; await U.mountCommunityHome?.(); return; }
     const active = seasons.find((s) => s.status === 'active') || seasons[0];
     if (S.sid !== active.id) await U.loadSeason(active.id);
     U.renderNav('inicio');
     app.innerHTML = hero + seasonHome() + `<h2 class="mt">Todas las temporadas</h2>${seasons.map((s) => `<a class="card" href="#/s/${s.id}" style="display:flex;justify-content:space-between;align-items:center;color:inherit"><b>${esc(s.name)}</b><span>${s.mode === 'two' ? '<span class="badge">2 divisiones</span> ' : ''}${statusBadge(s.status)}</span></a>`).join('')}`;
+    await U.mountCommunityHome?.();
   });
-  register('home-season', () => { $('#app').innerHTML = seasonHome(); });
+  register('home-season', async () => { $('#app').innerHTML = seasonHome(); await U.mountCommunityHome?.(); });
   function seasonHome() {
     const s = S.season;
     const comps = S.competitions.map((c) => {
@@ -432,7 +433,7 @@
     const bank = S.settings.bank || {};
     const { data: tx } = await sb().from('transactions').select('*').is('club_id', null).order('created_at', { ascending: false }).limit(100);
     $('#app').innerHTML = `<div class="card navy"><div class="row" style="gap:18px"><div><div class="kicker" style="color:#8FB0EE">Banco de la liga</div><h1 style="margin:0">${esc(bank.name || 'UML Bank')}</h1></div><div class="stat" style="margin-left:auto"><div class="v">${fmt(bank.balance)}</div><div class="l">Saldo</div></div></div></div>
-      ${!bank.enabled ? `<div class="alert warn"><b>${esc(bank.notice || 'Banco no disponible por el momento')}</b> — los préstamos se habilitan cuando el staff lo defina. Mientras tanto, acá se acumulan los pagos de gimnasio y las multas de fair play.</div>` : ''}
+      ${!bank.enabled ? `<div class="alert warn"><b>${esc(bank.notice || 'Banco no disponible por el momento')}</b> — los préstamos se habilitan cuando el staff lo defina. El libro registra ingresos por subastas, gimnasios y multas, y los premios de dinero de sorteos.</div>` : ''}
       <div class="card"><h3>Movimientos</h3>${tx?.length ? `<div class="table-wrap"><table><tbody>${tx.map((x) => `<tr><td class="muted tiny">${date(x.created_at)}</td><td>${esc(x.description)}</td><td class="num money ${x.amount < 0 ? 'neg' : ''}">${x.amount >= 0 ? '+' : '−'}${fmtM(Math.abs(x.amount))}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">Sin movimientos.</div>'}</div>`;
   });
 

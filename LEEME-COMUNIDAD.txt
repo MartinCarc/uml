@@ -1,0 +1,95 @@
+UML — INICIO, SORTEOS, PREMIOS, REGISTRO EDIT Y CALENDARIO
+
+INSTALAR SOBRE TU APP ACTUAL
+
+1. Descomprimí el ZIP.
+2. Supabase → SQL Editor → New query: pegá y ejecutá TODO el contenido de
+   supabase/migrations/20261120_community.sql
+   Es UNA consulta NUEVA. Aplicar después de Option File, subastas y fotos,
+   que ya venías usando. No ejecutar reset, schema_v2.sql ni consultas viejas.
+3. Subí a GitHub respetando las carpetas:
+   - Raíz (donde está config.js): index.html, styles.css, AGENTS.md, README.md.
+   - Dentro de js/: core.js, pages.js, admin.js, market.js y NUEVO community.js.
+   - Guardá el SQL en supabase/migrations/ para conservar el historial.
+   - tests/ contiene las pruebas locales y puede subirse también.
+   No reemplaces archivos de igual nombre que estén fuera de js/.
+   No subas todo dentro de una carpeta extra ni subas el ZIP sin descomprimir.
+4. Confirmá el cambio en GitHub, esperá Vercel y recargá (Ctrl+F5).
+
+NO SE BORRA NI SE REINICIA LA TEMPORADA DE PRUEBA.
+La consulta no ejecuta sorteos ni acredita premios por instalarla.
+
+DÓNDE ENCONTRAR LOS CAMBIOS
+
+INICIO
+Conserva resultados, goleadores y competencias. Agrega comunicados oficiales,
+usuarios online, próximo turno, próximos partidos, pendientes, mercado/subastas
+y accesos rápidos. En celular la presencia queda debajo del contenido.
+El administrador publica/edita/elimina/fija comunicados desde ese panel.
+
+ONLINE
+Usa Supabase Realtime Presence y actividad autenticada. Una persona aparece
+una vez aunque abra varias pestañas; visitantes sin sesión no se anuncian.
+Después de publicar, probá con dos cuentas/navegadores: entrá/salí y comprobá
+el panel. Si Realtime no está disponible, usa actividad reciente de hasta
+75 segundos; puede tardar en desaparecer un usuario tras perder conexión.
+No hace falta habilitar tablas en postgres_changes ni instalar otro servicio.
+
+SORTEOS (menú principal y atajo en Admin)
+Poner nombre, agregar premios independientes y guardar. Cada fila puede ser:
+- Dinero: monto. Sale de UML Bank al ejecutar; sin saldo suficiente se rechaza
+  el sorteo entero. Se acreditan ambos movimientos una sola vez.
+- Jugador: elegir del Option File y completar valor inicial de Transfermarkt
+  manualmente. La app no consulta Transfermarkt automáticamente.
+- Gimnasio: edad máxima inclusive y aumento a las 23 habilidades, tope 99.
+  La media se recalcula con la fórmula PES; no recibe un +N directo.
+- Tarjeta: fija elegida por admin o a elección del DT ganador, P o S.
+Todos los equipos de la temporada participan sin inscripción. Un equipo gana
+como máximo una vez por sorteo. Revisar participantes/premios/cupos y ejecutar.
+La adjudicación es definitiva y el historial de participantes/ganadores público.
+
+MIS PREMIOS (Inicio, Mi equipo y Sorteos)
+El DT asignado usa gimnasios/tarjetas en un jugador propio elegible. Cada vale
+se consume una vez, con sus condiciones originales. Las tarjetas no se duplican.
+Si un jugador ganado no tiene cupo o el mercado está cerrado, queda en reserva.
+Ingresa automáticamente con mercado abierto y cupo; se revisa al liberar/mover
+jugadores, abrir mercado o preparar/activar otra temporada abierta del club.
+La reserva no ocupa cupo activo ni se puede fichar desde otro club. Los vales y
+reservas no vencen al cambiar de temporada; permanecen con el club.
+
+ADMIN → REGISTRO EDIT
+Registro privado de nuevas aplicaciones efectivas de gimnasios/tarjetas:
+ID PES, jugador, DT/equipo, origen, condiciones, antes/después y media.
+Filtrar, exportar CSV detallado o resumen por jugador y marcar lo trasladado.
+Orden recomendado: copiar cambios al EDIT del juego → marcar los registros
+como trasladados → publicar el CSV actualizado en Option File.
+Una importación no puede sobrescribir mejoras todavía pendientes de trasladar.
+El catálogo sigue representando el EDIT publicado; el plantel refleja mejoras
+aplicadas en la app mientras se prepara esa actualización manual.
+El gimnasio habitual mantiene costos/edades/límites y espera de mercado,
+pero también aplica habilidades, recalcula con PES y deja su registro.
+No se inventan valores antes/después para aplicaciones anteriores a instalarlo.
+
+CALENDARIO (menú principal y atajo en Admin)
+Agregar turnos en el orden que elijas. No se cargó un orden por defecto porque
+no definimos todavía una secuencia oficial de liga/copa/promoción/Supercup.
+Premier y Championship comparten siempre la misma fecha en un turno; recién
+se completa cuando están todos los resultados de ambas ligas.
+Para Copa: elegir fecha de grupos o fase eliminatoria. Las fases sin participantes
+cargados quedan pendientes de definir. Se pueden indicar día/hora de Argentina,
+editar/subir/bajar/quitar turnos sin borrar ni regenerar partidos.
+Publicar el calendario para avisar el siguiente turno a DTs y simuladores.
+El próximo turno se muestra en Inicio y avanza con los resultados.
+Los simuladores se siguen asignando desde la administración de partidos actual.
+
+AVISOS
+Acceso junto a tu usuario, arriba; aparecen ofertas, premios y cambios de turno.
+Cada usuario solo puede leer y marcar sus propios avisos. No se envían correos.
+
+PRUEBAS Y ESTADO
+Pruebas locales de PostgreSQL/PGlite para reglas, permisos, banco, reservas,
+vales, fórmula PES, calendario, avisos y repetición de la consulta. Navegador con
+respuestas simuladas para formularios, roles, texto seguro, CSV y móvil.
+Las suites anteriores de economía, sponsors/copa, formación, fotos, temas y
+subastas también pasaron. La conexión real a Supabase Presence se comprueba
+tras instalar, con dos cuentas. No se modificó Supabase, GitHub ni Vercel reales.

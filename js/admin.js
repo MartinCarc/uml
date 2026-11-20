@@ -155,12 +155,12 @@
 
   // ================= PANEL ADMIN =================
   let tab = 'temporada';
-  A.adminTab = (k) => { if(k==='subastas'){location.hash=`#/s/${S.sid}/subastas`;return;} if(k === 'option-file') { location.hash = '#/option-file/admin'; return; } tab = k; U.route(); };
+  A.adminTab = (k) => { if(['sorteos','calendario','registro-edit'].includes(k)){location.hash=`#/s/${S.sid}/${k}`;return;} if(k==='subastas'){location.hash=`#/s/${S.sid}/subastas`;return;} if(k === 'option-file') { location.hash = '#/option-file/admin'; return; } tab = k; U.route(); };
   register('admin', async () => {
     if (!guard()) return;
     if (S.season.historical) return ($('#app').innerHTML = pageHead('Administración', esc(S.season.name)) + '<div class="empty">Esta temporada pertenece a una etapa archivada. Su historial se conserva para consulta.</div>');
     await loadProfiles();
-    const tabs = [['temporada', 'Temporada'], ['clubes', 'Clubes y DTs'], ['jugadores', 'Jugadores'], ['competencias', 'Competencias'], ['partidos', 'Partidos'], ['sanciones', 'Sanciones'], ['usuarios', 'Usuarios'], ['option-file', 'Option File'], ['subastas','Subastas'], ['auditoria', 'Auditoría'], ['sponsors', 'Sponsors']];
+    const tabs = [['temporada', 'Temporada'], ['clubes', 'Clubes y DTs'], ['jugadores', 'Jugadores'], ['competencias', 'Competencias'], ['partidos', 'Partidos'], ['sanciones', 'Sanciones'], ['usuarios', 'Usuarios'], ['option-file', 'Option File'], ['subastas','Subastas'], ['sorteos','Sorteos'], ['calendario','Calendario'], ['registro-edit','Registro EDIT'], ['auditoria', 'Auditoría'], ['sponsors', 'Sponsors']];
     const body = await ({ temporada: tabSeason, clubes: tabClubs, jugadores: tabPlayers, competencias: tabComps, partidos: tabMatches, sanciones: tabSanctions, usuarios: tabUsers, auditoria: tabAudit, sponsors: U.sponsorAdmin }[tab])();
     $('#app').innerHTML = pageHead('Administración', esc(S.season.name) + ' ' + statusBadge(S.season.status)) + `<div class="tabs">${tabs.map(([k, v]) => `<button class="${k === tab ? 'active' : ''}" onclick="A.adminTab('${k}')">${v}</button>`).join('')}</div>${body}`;
   });

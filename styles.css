@@ -286,3 +286,14 @@ html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !im
 .card.navy .stat .pes-rating--yellow { background:#a67c00; }
 .card.navy .stat .pes-rating--orange { background:#c45100; }
 .card.navy .stat .pes-rating--red { background:#dc2626; }
+
+/* Inicio y comunidad: mismos componentes UML, columna lateral adaptable. */
+.home-community { display:grid; grid-template-columns:minmax(0,1fr) 270px; gap:20px; align-items:start; }
+.home-community > *, #home-main > *, #home-original { min-width:0; }
+.official-news + .official-news { border-top:1px solid var(--line); margin-top:18px; padding-top:18px; }
+.community-prose { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.6; }
+.online-dot { width:8px; height:8px; border-radius:50%; background:#15803d; flex:none; }
+.current-turn { border-left:4px solid var(--blue); }
+.calendar-game + .calendar-game { border-top:1px solid var(--line); margin-top:12px; padding-top:12px; }
+.raffle-picker { border:2px solid var(--blue); }
+@media(max-width:1000px) { .home-community { grid-template-columns:minmax(0,1fr); } .home-community aside { order:2; } }

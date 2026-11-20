@@ -138,16 +138,16 @@ window.U = (() => {
   // ---------------- router ----------------
   const routes = {}; // name -> fn(params)
   function register(name, fn) { routes[name] = fn; }
-  const NAV = [['inicio', 'Inicio'], ['tabla', 'Tabla'], ['fixture', 'Fixture'], ['stats', 'Estadísticas'], ['equipos', 'Equipos'], ['mercado', 'Mercado'], ['subastas', 'Subastas'], ['option-file', 'Option File'], ['mi-equipo', 'Mi equipo'], ['mis-partidos', 'Mis partidos'], ['banco', 'UML Bank'], ['admin', 'Admin']];
+  const NAV = [['inicio', 'Inicio'], ['tabla', 'Tabla'], ['fixture', 'Fixture'], ['calendario', 'Calendario'], ['stats', 'Estadísticas'], ['equipos', 'Equipos'], ['mercado', 'Mercado'], ['subastas', 'Subastas'], ['sorteos', 'Sorteos'], ['option-file', 'Option File'], ['mi-equipo', 'Mi equipo'], ['mis-partidos', 'Mis partidos'], ['banco', 'UML Bank'], ['admin', 'Admin']];
   function renderNav(active) {
     const nav = $('#nav');
     if (!S.sid || !S.season) nav.innerHTML = `<a href="#/">Inicio</a><a href="#/option-file" class="${active === 'option-file' ? 'active' : ''}">Option File</a>`;
-    else nav.innerHTML = NAV.filter(([k]) => (k !== 'admin' || isAdmin()) && (k !== 'mi-equipo' || S.myClub) && (k !== 'mis-partidos' || S.profile?.is_simulator))
+    else nav.innerHTML = NAV.filter(([k]) => (k !== 'admin' || isAdmin()) && (k !== 'mi-equipo' || S.myClub) && (k !== 'premios' || S.myClub) && (k !== 'avisos' || S.user) && (k !== 'mis-partidos' || S.profile?.is_simulator))
       .map(([k, v]) => `<a href="${k === 'inicio' ? '#/' : k === 'option-file' ? '#/option-file' : `#/s/${S.sid}/${k}`}" class="${active === k ? 'active' : ''}">${v}</a>`).join('');
     const ub = $('#userbox');
     if (S.user) {
       const p = S.profile; const initials = (p?.username || '?').slice(0, 1).toUpperCase();
-      ub.innerHTML = `<a href="#/perfil" class="avatar" title="Mi perfil">${p?.avatar_url ? `<img src="${esc(p.avatar_url)}">` : initials}</a><a href="#/perfil" style="color:#fff;font-weight:600">${esc(p?.username || '')}</a>${isAdmin() ? '<span class="badge white">admin</span>' : (p?.is_simulator ? '<span class="badge white">sim</span>' : '')}<button class="secondary sm" onclick="A.logout()">Salir</button>`;
+      ub.innerHTML = `<a href="#/perfil" class="avatar" title="Mi perfil">${p?.avatar_url ? `<img src="${esc(p.avatar_url)}">` : initials}</a><a href="#/perfil" style="color:#fff;font-weight:600">${esc(p?.username || '')}</a>${isAdmin() ? '<span class="badge white">admin</span>' : (p?.is_simulator ? '<span class="badge white">sim</span>' : '')}${S.sid ? `<a class="btn secondary sm" data-community-notices href="#/s/${S.sid}/avisos">Avisos</a>` : ''}<button class="secondary sm" onclick="A.logout()">Salir</button>`;
     } else ub.innerHTML = `<a class="btn sm" href="#/login">Ingresar</a>`;
   }
   async function route() {
@@ -156,6 +156,7 @@ window.U = (() => {
     const app = $('#app');
     if(parts[0]!=='s') U.applyCompetitionTheme?.(null);
     try {
+      U.communityRuntime?.().catch(() => {});
       await U.loadPlayerPhotos?.();
       if (parts[0] === 'option-file') { renderNav('option-file'); return await routes['option-file'](parts[1]); }
       if (parts[0] === 'login') { renderNav(null); return routes.login(); }
@@ -166,9 +167,9 @@ window.U = (() => {
         const sid = parts[1], page = parts[2] || 'inicio';
         if (S.sid !== sid || !S.season || (S.auctionsTouched && page !== 'subastas')) { app.innerHTML = '<div class="loading">Cargando temporada…</div>'; await loadSeason(sid); S.auctionsTouched = false; }
         else S.myClub = S.user ? (S.seasonTeams.find((t) => t.manager_id === S.user.id)?.club_id || null) : null;
-        const map = { inicio: 'home-season', tabla: 'tabla', fixture: 'fixture', stats: 'stats', equipos: 'equipos', equipo: 'equipo', partido: 'partido', mercado: 'mercado', 'mi-equipo': 'mi-equipo', 'mis-partidos': 'mis-partidos', banco: 'banco', admin: 'admin', jugador: 'jugador', pizarra: 'pizarra', subastas: 'subastas' };
+        const map = { inicio: 'home-season', tabla: 'tabla', fixture: 'fixture', stats: 'stats', equipos: 'equipos', equipo: 'equipo', partido: 'partido', mercado: 'mercado', 'mi-equipo': 'mi-equipo', 'mis-partidos': 'mis-partidos', banco: 'banco', admin: 'admin', jugador: 'jugador', pizarra: 'pizarra', subastas: 'subastas', sorteos: 'sorteos', premios: 'premios', calendario: 'calendario', avisos: 'avisos', 'registro-edit': 'registro-edit' };
         U.themeForRoute?.(page,parts[3]);
-        renderNav(page === 'equipo' ? 'equipos' : page === 'partido' ? 'fixture' : page);
+        renderNav(page === 'registro-edit' ? 'admin' : page === 'equipo' ? 'equipos' : page === 'partido' ? 'fixture' : page);
         const fn = routes[map[page]];
         if (!fn) return (app.innerHTML = '<div class="empty">Página inexistente.</div>');
         return await fn(parts[3], parts[4]);
