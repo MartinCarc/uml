@@ -41,9 +41,20 @@
  window.addEventListener('pageshow',()=>{if(runtimeUser&&sessionId){rpc('online_ping',{p_session:sessionId,p_leave:false}).catch(()=>{});channel?.track({user_id:runtimeUser}).catch(()=>{});}});
  U.mountCommunityHome=async()=>{
   const token=++homeToken,hash=location.hash;
-  const app=$('#app'),hero=app.querySelector('.hero'),old=[...app.childNodes];
-  app.innerHTML='<div class="home-community"><div id="home-main"><div id="home-news"></div><div id="home-tools"></div><div id="home-original"></div></div><aside><div class="card" id="home-online"><h3>Usuarios online</h3><p class="small muted">Conectando…</p></div></aside></div>';
-  $('#home-original').append(...old);if(hero)app.prepend(hero);
+  const app = $('#app');
+  const heading = app.querySelector('.home-heading') || app.querySelector('.hero');
+  const history = app.querySelector('.home-history');
+  const original = [...app.childNodes].filter(node => node !== heading && node !== history);
+  app.innerHTML = `<div class="home-community home-dt">
+    <div class="home-dt-column"><div id="home-team"></div><div id="home-tools"></div><div id="home-original"></div></div>
+    <aside class="home-dt-column"><div id="home-pending"></div><div id="home-news"></div><div id="home-market"></div>
+      <div id="home-presence"><div class="card" id="home-online"><h3>Usuarios online</h3><p class="small muted">Conectando…</p></div></div>
+    </aside>
+  </div>`;
+  $('#home-original').append(...original);
+  if (heading) app.prepend(heading);
+  if (history) app.append(history);
+  if (!renderHomeTeam()) app.querySelector(".home-dt").classList.add("home-dt-public");
   try{
    const f=await feed();if(token!==homeToken||location.hash!==hash)return;
    online=f.online;renderOnline();renderAnnouncements(f.announcements);await renderHomeTools(f);
@@ -60,18 +71,78 @@
   modal(`<h2>${a?'Editar':'Nuevo'} comunicado</h2><form id="news-form"><div class="field"><label>Título</label><input name="title" required maxlength="160" value="${esc(a?.title||'')}"></div><div class="field"><label>Contenido</label><textarea name="body" required maxlength="20000" rows="7">${esc(a?.body||'')}</textarea></div><label class="check mb"><input name="pinned" type="checkbox" ${a?.pinned?'checked':''}> Fijar comunicado</label><button>Guardar comunicado</button></form>`);
   $('#news-form').onsubmit=e=>saveForm(e,'announcement_save',f=>({p_title:f.get('title'),p_body:f.get('body'),p_pinned:f.has('pinned'),p_id:a?.id||null}),async()=>{renderAnnouncements((await feed()).announcements);});
  }
- async function renderHomeTools(f){
-  if(!$('#home-tools')||!S.season)return;
-  const current=f.turns.find(t=>t.state!=='completed'),next=(current?current.matches:S.matches).filter(m=>m.status==='pending').slice(0,4),team=U.st(S.myClub),pending=[];
-  if(S.myClub){const offers=S.offers.filter(o=>o.status==='pending'&&o.responder_turn===S.myClub).length;if(offers)pending.push(`<a href="${link('mercado')}" onclick="event.preventDefault();A.myNegotiations()">${offers} oferta(s) por responder</a>`);
-   if((team?.tactics?.lineup||[]).length<11)pending.push(`<a href="${link('pizarra',S.myClub)}">Completar Formación</a>`);
-   if((team?.tactics?.bench||[]).length<12)pending.push(`<a href="${link('pizarra',S.myClub)}">Revisar banco de suplentes</a>`);
-   if(S.season.status==='draft'&&!team?.sponsor_id)pending.push(`<a href="${link('equipo',S.myClub)}">Elegir sponsor</a>`);
-   const prizes=f.awards.filter(a=>a.club_id===S.myClub&&!a.used_at&&['gym','card'].includes(f.prizes.find(p=>p.id===a.prize_id)?.kind)).length;if(prizes)pending.push(`<a href="${link('premios')}">${prizes} premio(s) por utilizar</a>`);
-   const reserves=f.reserves.filter(r=>r.club_id===S.myClub&&r.status==='pending').length;if(reserves)pending.push(`<a href="${link('premios')}">${reserves} jugador(es) en reserva pendiente</a>`);
+ function renderHomeTeam() {
+  const host = $('#home-team');
+  const club = U.club(S.myClub);
+  const team = U.st(S.myClub);
+  if (!club || !team) return;
+
+  const league = S.competitions.find(competition => competition.kind === 'league' && U.compClubs(competition.id).includes(club.id));
+  const position = league && S.matches.some(match => match.competition_id === league.id && match.status === 'played')
+    ? U.standings(league.id).find(row => row.club_id === club.id)?.pos : null;
+  const available = Number(team.budget || 0) - Number(team.reserved || 0);
+  host.innerHTML = `<section class="card navy home-team-summary">
+    <div class="row">${U.crest(club, 'lg')}<div><div class="kicker">Mi equipo${league ? ' · ' + esc(league.name) : ''}</div><h2>${esc(club.name)}</h2></div></div>
+    <div class="row between home-team-footer">
+      <dl class="home-team-metrics"><div><dt>Disponible</dt><dd>${U.fmtM(available)}</dd></div><div><dt>Plantel</dt><dd>${U.squad(club.id).length}/${U.cfg().squad_limit}</dd></div><div><dt>Posición</dt><dd>${position ? position + '.º' : '—'}</dd></div></dl>
+      <div class="row"><a class="btn sm" href="${link('pizarra', club.id)}">Formación</a><a class="btn secondary sm" href="${link('mi-equipo')}">Mi equipo</a></div>
+    </div>
+  </section>`;
+  return true;
+ }
+
+ async function renderHomeTools(feedData) {
+  const host = $('#home-tools');
+  if (!host || !S.season) return;
+  const current = feedData.turns.find(turn => turn.state !== 'completed');
+  const pendingMatches = S.matches.filter(match => match.status === 'pending');
+  const belongsToMyClub = match => S.myClub && [match.home_club_id, match.away_club_id].includes(S.myClub);
+  const myMatch = current?.matches?.find(match => match.status === 'pending' && belongsToMyClub(match))
+    || pendingMatches.find(belongsToMyClub);
+  const turnMatches = (current?.matches || pendingMatches).filter(match => match.status === 'pending');
+  const next = myMatch ? [myMatch] : turnMatches.slice(0, 3);
+  const team = U.st(S.myClub);
+  const pending = [];
+  if (team && S.season.status !== 'closed' && !S.season.historical) {
+    const offers = S.offers.filter(offer => offer.status === 'pending' && offer.responder_turn === S.myClub).length;
+    if (offers) pending.push(`<a href="${link('mercado')}" onclick="event.preventDefault();A.myNegotiations()">${offers} oferta(s) por responder</a>`);
+    if ((team.tactics?.lineup || []).length < 11) pending.push(`<a href="${link('pizarra', S.myClub)}">Completar Formación</a>`);
+    if ((team.tactics?.bench || []).length < 12) pending.push(`<a href="${link('pizarra', S.myClub)}">Revisar banco de suplentes</a>`);
+    if (S.season.status === 'draft' && !team.sponsor_id) pending.push(`<a href="${link('equipo', S.myClub)}">Elegir sponsor</a>`);
+    const prizes = feedData.awards.filter(award => award.club_id === S.myClub && !award.used_at && ['gym', 'card'].includes(feedData.prizes.find(prize => prize.id === award.prize_id)?.kind)).length;
+    const reserves = feedData.reserves.filter(reserve => reserve.club_id === S.myClub && reserve.status === 'pending').length;
+    if (prizes) pending.push(`<a href="${link('premios')}">${prizes} premio(s) por utilizar</a>`);
+    if (reserves) pending.push(`<a href="${link('premios')}">${reserves} jugador(es) en reserva pendiente</a>`);
   }
-  $('#home-tools').innerHTML=`<div class="grid c2"><div class="card"><h3>Próximo turno de simulación</h3>${current?`<p><b>${turnTitle(current)}</b></p><p class="small muted">${current.played}/${current.expected} partidos · ${turnState(current)}</p>`:empty('El administrador todavía no definió el calendario, o todos los turnos están completos.')}<a href="${link('calendario')}">Ver calendario completo →</a></div><div class="card"><h3>Mis pendientes</h3>${!S.user?empty('Ingresá para consultar tus pendientes.'):pending.length?pending.map(x=>'<p>'+x+'</p>').join(''):empty('No tenés pendientes para mostrar.')}<div class="row">${S.myClub?`<a class="btn secondary sm" href="${link('mi-equipo')}">Mi equipo</a><a class="btn secondary sm" href="${link('pizarra',S.myClub)}">Formación</a><a class="btn secondary sm" href="${link('premios')}">Mis premios</a>`:''}<a class="btn secondary sm" href="${link('avisos')}">Avisos</a></div></div></div><div class="grid c2"><div class="card"><h3>Próximos partidos</h3>${next.length?next.map(m=>U.matchRow(m,{sub:m=>esc(U.comp(m.competition_id)?.name)+' · '+(U.STAGE[m.stage]||m.stage)+' '+m.round})).join(''):empty('No hay partidos pendientes cargados.')}<a href="${link('fixture')}">Fixture y formaciones →</a></div><div class="card"><h3>Mercado y subastas</h3><p><span class="badge ${S.season.market_open?'green':'red'}">${S.season.market_open?'Mercado abierto':'Mercado cerrado'}</span> ${esc(S.season.market_label||'')}</p>${S.season.market_opens_at?`<p>Apertura: ${date(S.season.market_opens_at)}</p>`:''}${S.season.market_closes_at?`<p>Cierre: ${date(S.season.market_closes_at)}</p>`:''}<div id="home-auctions">Cargando subastas…</div><div class="row mt"><a href="${link('mercado')}" onclick="event.preventDefault();A.myNegotiations()">Mis negociaciones</a><a href="${link('sorteos')}">Sorteos</a></div></div></div>`;
-  try{const a=await q(sb().from('auctions').select('*').eq('season_id',S.sid).eq('status','open').order('ends_at').limit(4));if(!$('#home-auctions'))return;$('#home-auctions').innerHTML=a.length?a.map(a=>`<p><a href="${link('subastas',a.id)}">${U.playerLabel(a.player_snapshot)}</a><br><span class="small">${a.top_amount?'Mayor oferta: '+fmt(a.top_amount):'Inicial: '+fmt(a.initial_amount)} · <span data-home-auction="${esc(a.ends_at)}"></span></span></p>`).join(''):empty('No hay subastas activas.');homeClocks();}catch(_){if($('#home-auctions'))$('#home-auctions').innerHTML=empty('No se pudieron consultar las subastas.');}
+  if (team) {
+    $('#home-pending').innerHTML = `<section class="card"><div class="row between"><h3>Por resolver</h3><span class="badge">${pending.length}</span></div>
+      ${pending.length ? '<ul class="home-task-list">' + pending.map(task => '<li>' + task + '</li>').join('') + '</ul>' : empty('No tenés pendientes.')}
+      <div class="row"><a class="btn secondary sm" href="${link('premios')}">Mis premios</a><a class="btn secondary sm" href="${link('avisos')}">Avisos</a></div>
+    </section>`;
+  }
+  host.innerHTML = `<section class="card"><div class="row between"><h3>Próximo turno de simulación</h3>${current?.kind === 'league' ? '<span class="badge">Fecha compartida</span>' : ''}</div>
+    ${current ? `<p><b>${turnTitle(current)}</b></p><p class="small muted">${current.played}/${current.expected} partidos · ${turnState(current)}${current.scheduled_at ? ' · ' + date(current.scheduled_at) : ''}</p>
+      ${current.expected > 0 ? `<progress class="home-turn-progress" value="${Math.min(current.played, current.expected)}" max="${current.expected}" aria-label="Partidos completados"></progress>` : ''}` : empty('No hay turnos pendientes en el calendario.')}
+    <h4>${myMatch ? 'Tu próximo partido' : 'Próximos partidos'}</h4>
+    ${next.length ? next.map(match => U.matchRow(match, { sub: item => esc(U.comp(item.competition_id)?.name) + ' · ' + esc(U.STAGE[item.stage] || item.stage) + ' ' + item.round })).join('') : empty('No hay partidos pendientes para mostrar.')}
+    <div class="row mt"><a class="btn secondary sm" href="${link('calendario')}">Ver calendario</a><a href="${link('fixture')}">Ver fixture →</a></div>
+  </section>`;
+  $('#home-market').innerHTML = `<section class="card"><h3>Mercado y subastas</h3>
+    <p><span class="badge ${S.season.market_open ? 'green' : 'red'}">${S.season.market_open ? 'Mercado abierto' : 'Mercado cerrado'}</span> ${esc(S.season.market_label || '')}</p>
+    ${S.season.market_opens_at ? `<p>Apertura: ${date(S.season.market_opens_at)}</p>` : ''}
+    ${S.season.market_closes_at ? `<p>Cierre: ${date(S.season.market_closes_at)}</p>` : ''}
+    <div id="home-auctions">Cargando subastas…</div>
+    <div class="row mt"><a href="${link('mercado')}" ${team ? 'onclick="event.preventDefault();A.myNegotiations()"' : ''}>${team ? 'Mis negociaciones' : 'Ver mercado'}</a><a href="${link('sorteos')}">Sorteos</a></div>
+  </section>`;
+  const auctionsHost = $('#home-auctions');
+  try {
+    const auctions = await q(sb().from('auctions').select('*').eq('season_id', S.sid).eq('status', 'open').order('ends_at').limit(4));
+    if (!auctionsHost.isConnected) return;
+    auctionsHost.innerHTML = auctions.length ? auctions.map(auction => `<p><a href="${link('subastas', auction.id)}">${U.playerLabel(auction.player_snapshot)}</a><br><span class="small">${auction.top_amount ? 'Mayor oferta: ' + fmt(auction.top_amount) : 'Inicial: ' + fmt(auction.initial_amount)} · <span data-home-auction="${esc(auction.ends_at)}"></span></span></p>`).join('') : empty('No hay subastas activas.');
+    homeClocks();
+  } catch (_) {
+    if (auctionsHost.isConnected) auctionsHost.innerHTML = empty('No se pudieron consultar las subastas.');
+  }
  }
  function homeClocks(){document.querySelectorAll('[data-home-auction]').forEach(e=>{const seconds=Math.max(0,Math.ceil((new Date(e.dataset.homeAuction)-Date.now())/1000));e.textContent=seconds?'Restan '+Math.floor(seconds/3600)+' h '+Math.floor(seconds%3600/60)+' min':'Plazo terminado';});}
  setInterval(()=>{if(liveHome())homeClocks();},1000);

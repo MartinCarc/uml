@@ -1,17 +1,9 @@
-CIERRE DE VENTANAS UML
+UML — PANEL DEL DT
 
-Reemplazá estos archivos en GitHub:
-- js/core.js: dentro de la carpeta js (no el core.js de la raíz).
-- styles.css y AGENTS.md: en la raíz, donde está index.html.
-Esperá el despliegue de Vercel y recargá con Ctrl+F5.
-No necesita SQL ni cambios en Supabase.
+Descomprimí el ZIP y reemplazá en GitHub:
+- js/community.js y js/pages.js dentro de js/.
+- styles.css y AGENTS.md en la raíz, junto a index.html.
 
-Todas las ventanas tienen una X arriba a la derecha. Permite salir sin
-completar ni guardar el formulario; Escape también cierra.
-La X permanece visible al desplazar ventanas largas y funciona en móvil.
-Cerrar no guarda ni ejecuta sorteos. Si ya confirmaste y enviaste una acción,
-cerrar la ventana no revierte esa acción enviada.
-
-Verificado localmente: ventanas cortas/largas, móvil/escritorio, cierre de
-formulario incompleto, Escape, regreso del foco y ausencia de guardados/sorteos
-al cancelar. La actualización todavía debe publicarse en GitHub/Vercel.
+Esperá el despliegue de Vercel y recargá. El Panel del DT usa los datos
+ya instalados de Comunidad. No requiere una consulta SQL nueva.
+Los dos bocetos del menú se presentan por separado para elegir una opción.

@@ -64,7 +64,7 @@
     const active = seasons.find((s) => s.status === 'active') || seasons[0];
     if (S.sid !== active.id) await U.loadSeason(active.id);
     U.renderNav('inicio');
-    app.innerHTML = hero + seasonHome() + `<h2 class="mt">Todas las temporadas</h2>${seasons.map((s) => `<a class="card" href="#/s/${s.id}" style="display:flex;justify-content:space-between;align-items:center;color:inherit"><b>${esc(s.name)}</b><span>${s.mode === 'two' ? '<span class="badge">2 divisiones</span> ' : ''}${statusBadge(s.status)}</span></a>`).join('')}`;
+    app.innerHTML = seasonHome() + `<details class="card home-history"><summary>Todas las temporadas</summary>${seasons.map((s) => `<a class="card" href="#/s/${s.id}" style="display:flex;justify-content:space-between;align-items:center;color:inherit"><b>${esc(s.name)}</b><span>${s.mode === 'two' ? '<span class="badge">2 divisiones</span> ' : ''}${statusBadge(s.status)}</span></a>`).join('')}</details>`;
     await U.mountCommunityHome?.();
   });
   register('home-season', async () => { $('#app').innerHTML = seasonHome(); await U.mountCommunityHome?.(); });
@@ -77,11 +77,11 @@
     }).join('');
     const recent = S.matches.filter((m) => m.status === 'played').sort((a, b) => (b.played_seq || 0) - (a.played_seq || 0)).slice(0, 5);
     const scorers = topList('goal', 5);
-    const pend = S.myClub ? S.offers.filter((o) => o.status === 'pending' && o.responder_turn === S.myClub).length : 0;
-    return `<div class="row between mb"><h2 style="margin:0">${esc(s.name)} ${statusBadge(s.status)}</h2><span class="badge ${s.market_open ? 'green' : 'red'}">${s.market_open ? 'Mercado abierto' : 'Mercado cerrado'}</span></div>
-      ${pend ? `<div class="alert info">Tenés <b>${pend}</b> oferta(s) esperando tu respuesta. <a href="#/s/${S.sid}/mercado">Ir al mercado →</a></div>` : ''}
-      <div class="grid c3 mb">${comps || '<div class="empty">Sin competencias.</div>'}</div>
-      <div class="grid c2">
+    const accountActions = isAdmin() ? '<a class="btn secondary sm" href="#/clubes">Administrar clubes</a><a class="btn secondary sm" href="#/nueva-temporada">+ Nueva temporada</a>' : '';
+    return `<div class="page-head home-heading"><div><h1>Inicio</h1><div class="sub">${esc(s.name)} ${statusBadge(s.status)}</div></div>
+      <div class="actions">${!S.user ? '<a class="btn sm" href="#/login">Ingresar o registrarme</a>' : ''}${accountActions}</div></div>
+      <section class="card home-competitions"><h3>Competencias</h3><div class="grid c2">${comps || '<div class="empty">Sin competencias.</div>'}</div></section>
+      <div class="home-results">
         <div class="card"><h3>Últimos resultados</h3>${recent.length ? recent.map(matchRow).join('') : '<div class="empty">Todavía no se jugaron partidos.</div>'}</div>
         <div class="card"><h3>Goleadores</h3>${scorers.length ? scorers.map((r, i) => `<div class="list-item"><span class="row"><span class="muted2 b">${i + 1}</span><a href="#/s/${S.sid}/jugador/${r.p.id}" style="color:inherit"><b>${U.playerLabel(r.p)}</b></a> <span class="muted small">${esc(club(r.p.club_id)?.name || 'libre')}</span></span><span class="pts" style="font-family:var(--display);font-size:20px;font-weight:800;color:var(--blue)">${r.n}</span></div>`).join('') : '<div class="empty">Sin goles todavía.</div>'}</div>
       </div>`;
