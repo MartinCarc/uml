@@ -41,8 +41,26 @@ window.U = (() => {
   // ---------------- UI utils ----------------
   let toastTimer;
   function toast(msg, type = '') { const t = $('#toast'); t.textContent = msg; t.className = 'toast show ' + type; clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.className = 'toast'), 3800); }
-  function modal(html, wide) { $('#modal-card').innerHTML = html; $('#modal-card').className = 'modal-card' + (wide ? ' wide' : ''); $('#modal').classList.remove('hidden'); }
-  function closeModal() { $('#modal').classList.add('hidden'); $('#modal-card').innerHTML = ''; }
+  let modalReturnFocus = null;
+  function modal(html, wide) {
+    const overlay = $('#modal'), card = $('#modal-card');
+    if (overlay.classList.contains('hidden')) modalReturnFocus = document.activeElement;
+    card.innerHTML = '<div class="modal-toolbar"><button type="button" class="modal-close" aria-label="Cerrar ventana" title="Cerrar ventana">&times;</button></div>' + html;
+    card.className = 'modal-card' + (wide ? ' wide' : '');
+    card.setAttribute('role', 'dialog'); card.setAttribute('aria-modal', 'true');
+    card.setAttribute('aria-label', card.querySelector('h1,h2,h3')?.textContent || 'Ventana');
+    card.querySelector('.modal-close').onclick = closeModal;
+    overlay.classList.remove('hidden'); card.scrollTop = 0;
+    (card.querySelector('input:not([type=hidden]):not([disabled]),select:not([disabled]),textarea:not([disabled])') || card.querySelector('.modal-close')).focus({ preventScroll: true });
+  }
+  function closeModal() {
+    $('#modal').classList.add('hidden'); $('#modal-card').innerHTML = '';
+    if (modalReturnFocus && document.contains(modalReturnFocus)) modalReturnFocus.focus({ preventScroll: true });
+    modalReturnFocus = null;
+  }
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !$('#modal').classList.contains('hidden')) { event.preventDefault(); closeModal(); }
+  });
   function err(e) { console.error(e); toast(e?.message || String(e), 'error'); }
   const isAdmin = () => !!S.profile?.is_admin;
   const isSim = () => !!(S.profile?.is_simulator || S.profile?.is_admin);

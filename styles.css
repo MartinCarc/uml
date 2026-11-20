@@ -297,3 +297,10 @@ html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !im
 .calendar-game + .calendar-game { border-top:1px solid var(--line); margin-top:12px; padding-top:12px; }
 .raffle-picker { border:2px solid var(--blue); }
 @media(max-width:1000px) { .home-community { grid-template-columns:minmax(0,1fr); } .home-community aside { order:2; } }
+
+/* Cierre global visible incluso al desplazar ventanas largas. */
+.modal-toolbar { position:sticky; top:8px; height:0; display:flex; justify-content:flex-end; z-index:3; }
+.modal-close { flex:none; width:32px; height:32px; padding:0; border:1px solid var(--line); border-radius:8px; background:var(--tint); color:var(--navy); font-family:inherit; font-size:25px; font-weight:500; line-height:1; display:inline-flex; align-items:center; justify-content:center; }
+.modal-close:hover { background:var(--line); color:var(--navy); }
+.modal-close:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+.modal-card > h1:first-of-type, .modal-card > h2:first-of-type, .modal-card > h3:first-of-type { padding-right:44px; }

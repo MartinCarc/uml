@@ -1,8 +1,17 @@
-Reemplazá styles.css y AGENTS.md en la raíz del repositorio GitHub,
-donde está index.html. Esperá el despliegue de Vercel y recargá (Ctrl+F5).
-No requiere SQL ni archivos JavaScript nuevos.
+CIERRE DE VENTANAS UML
 
-La media en cabeceras UML y Option File usa fondo del color de su rango
-PES y número blanco, sin contorno. Por debajo de 75 el fondo es negro.
-Se conservan posiciones, tamaños, indicadores 2×2, habilidades y tablas.
-Verificado en navegador local en escritorio y móvil; falta publicar.
+Reemplazá estos archivos en GitHub:
+- js/core.js: dentro de la carpeta js (no el core.js de la raíz).
+- styles.css y AGENTS.md: en la raíz, donde está index.html.
+Esperá el despliegue de Vercel y recargá con Ctrl+F5.
+No necesita SQL ni cambios en Supabase.
+
+Todas las ventanas tienen una X arriba a la derecha. Permite salir sin
+completar ni guardar el formulario; Escape también cierra.
+La X permanece visible al desplazar ventanas largas y funciona en móvil.
+Cerrar no guarda ni ejecuta sorteos. Si ya confirmaste y enviaste una acción,
+cerrar la ventana no revierte esa acción enviada.
+
+Verificado localmente: ventanas cortas/largas, móvil/escritorio, cierre de
+formulario incompleto, Escape, regreso del foco y ausencia de guardados/sorteos
+al cancelar. La actualización todavía debe publicarse en GitHub/Vercel.
