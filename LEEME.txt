@@ -1,11 +1,26 @@
-UML — MENÚ POR CATEGORÍA
+UML — FORMACIÓN INTERACTIVA
 
-Si todavía vas a publicar el Panel del DT, aplicá primero ese paquete.
-Para esta actualización reemplazá en GitHub:
-- js/core.js dentro de la carpeta js/.
-- styles.css y AGENTS.md en la raíz, junto a index.html.
+1. En Supabase → SQL Editor → New query, ejecutá el archivo completo
+   supabase/migrations/20261121_interactive_formation.sql del ZIP.
+   Es una consulta nueva para la base donde ya funciona la Formación anterior.
+2. En GitHub reemplazá js/tactics.js dentro de js/, y styles.css y AGENTS.md
+   en la raíz, junto a index.html. Guardá la nueva consulta en
+   supabase/migrations/ del repositorio para conservarla.
+3. Esperá el despliegue de Vercel y recargá la página.
 
-Esperá el despliegue de Vercel y recargá. No hace falta ejecutar SQL.
-El escudo original abre Inicio. Competencias, Mercado y Clubes y jugadores
-se despliegan al tocarlos. El menú se cierra con Escape, al elegir un enlace
-o al pulsar fuera.
+La migración conserva las formaciones publicadas. El responsable anterior de
+tiros libres aparece en Tiros libres cortos. Tiros libres lejanos queda libre
+hasta asignarlo. Las formaciones previas abren con su distribución guardada y
+con Táctica favorita sin definir hasta que el DT la complete.
+
+Tocá una ficha para cambiar su posición, ajustar el nombre corto o elegir un
+reemplazante del banco. El apellido de la ficha es sugerido cuando solo hay
+un campo de nombre, y podés corregirlo allí mismo, incluso si es compuesto.
+En Táctica favorita están los once esquemas y seis tácticas. Los esquemas
+reubican a los titulares que ya hayas cargado. Las fichas se pueden mover
+después con el puntero o con las flechas del teclado.
+
+Guardar formación publica todos los cambios juntos. Solo si el contenido
+cambió se actualiza Última modificación con la hora del servidor, mostrada en
+hora argentina. El simulador puede consultar los datos guardados desde las
+formaciones del partido.
