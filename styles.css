@@ -376,3 +376,88 @@ html[data-competition] .card.navy .kicker { color:var(--competition-nav-ink) !im
   .nav-dropdown { top:100%; left:12px; right:12px; }
   .nav-group > summary, .nav > a { padding:8px 10px; }
 }
+
+/* Formación interactiva */
+.tactics-interactive .tactics-pitch {
+  max-width:460px; aspect-ratio:4/5; border:1px solid #285c4a;
+  background:repeating-linear-gradient(180deg,#184936 0 12.5%,#1a503a 12.5% 25%);
+}
+.tactics-interactive .tactics-lines, .tactics-interactive .tactics-lines i { border-color:#c8ebd78c; }
+.tactics-side { min-width:0; }
+.tactics-tabs { flex-wrap:wrap; }
+.tactics-interactive [hidden] { display:none !important; }
+.tactics-tabs [aria-pressed=true] { background:var(--blue); color:#fff; }
+.tactics-interactive .tactics-piece { width:20%; max-width:100px; gap:4px; }
+.tactics-interactive .tactics-disc {
+  width:34px; height:34px; border-width:2px; box-shadow:0 2px 7px #0b251e7a;
+}
+.tactics-interactive .tactics-piece[aria-pressed=true] { z-index:3; }
+.tactics-interactive .tactics-piece[aria-pressed=true] .tactics-disc { outline:2px solid #ffd870; outline-offset:2px; }
+.tactics-token-label {
+  display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:3px;
+  max-width:100%; background:#112e25; color:white; padding:2px 3px 2px 5px; border-radius:5px;
+}
+.tactics-interactive .tactics-name {
+  padding:0; border:0; background:none; color:inherit; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; min-width:0;
+}
+.tactics-token-label .position { font-size:9px; padding:2px 3px; }
+.tactics-entries { max-height:300px; overflow:auto; scrollbar-width:thin; scrollbar-color:#557eb7 #eaf1fc; }
+.tactics-interactive select { color-scheme:light; background:#fff; }
+.tactics-point {
+  display:grid; grid-template-columns:minmax(0,1fr) 2.5rem; gap:2px 8px; align-items:center;
+  border-top:1px solid var(--line); padding:8px 0;
+}
+.tactics-point label { grid-column:1/-1; font-size:12px; font-weight:600; }
+.tactics-point input { width:100%; min-height:22px; margin:0; accent-color:var(--blue); padding:0; }
+.tactics-point output { text-align:center; font-variant-numeric:tabular-nums; }
+#tactics-responsibilities { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 10px; }
+#tactics-status:empty { display:none; }
+.tactics-pitch-heading { margin:0; }
+
+/* Consulta de la formación */
+.tactics-reader { grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); row-gap:12px; }
+.tactics-reader-history { grid-column:1/-1; }
+.tactics-reader-icon { width:1.2em; height:1.2em; flex:none; }
+.tactics-reader-history, .tactics-reader .tactics-pitch-heading,
+.tactics-reader-notes h3, .tactics-reader-roles-heading { display:flex; align-items:center; gap:8px; }
+.tactics-reader .tactics-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; }
+.tactics-reader .tactics-tabs button {
+  display:flex; align-items:center; justify-content:center; gap:5px;
+  padding:8px 4px; min-height:40px; font-size:13px;
+}
+.tactics-reader .tactics-tabs button span { font-size:11px; font-variant-numeric:tabular-nums; }
+.tactics-reader .tactics-entries { max-height:none; }
+.tactics-reader .tactics-row:last-child { border-bottom:0; }
+.tactics-reader-notes { padding:12px 14px; background:var(--line2); border-radius:9px; }
+.tactics-reader-notes h3, .tactics-reader-notes p { margin:0; }
+.tactics-reader-notes p { margin-top:6px; }
+.tactics-reader-roles-heading { margin:16px 0 4px; }
+.tactics-reader #tactics-responsibilities { grid-template-columns:minmax(0,1fr); }
+.tactics-reader-role { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:8px 0; font-size:13px; align-items:baseline; }
+.tactics-reader-role + .tactics-reader-role { border-top:1px solid var(--line2); }
+.tactics-reader-role b { text-align:right; overflow-wrap:anywhere; }
+.tactics-reader-role .muted { font-weight:400; }
+.tactics-reader-tactic { display:grid; grid-template-columns:1fr 2fr; gap:8px; margin:0 0 12px; }
+.tactics-reader-tactic div { background:var(--line2); border-radius:8px; padding:8px 10px; }
+.tactics-reader-tactic dt, .tactics-reader-points small { color:var(--muted); font-size:12px; }
+.tactics-reader-tactic dd { margin:2px 0 0; font-weight:700; }
+.tactics-reader-points { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; }
+.tactics-reader-points > div {
+  display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:baseline;
+  gap:4px; font-size:13px; padding-top:6px; border-top:1px solid var(--line2);
+}
+.tactics-reader-points meter { grid-column:1/-1; width:100%; height:8px; }
+.tactics-reader-points meter::-webkit-meter-bar { background:var(--line2); border:0; }
+.tactics-reader-points meter::-webkit-meter-optimum-value { background:var(--blue); border-radius:10px; }
+.tactics-reader-points meter::-moz-meter-bar { background:var(--blue); border-radius:10px; }
+@media(min-width:761px) and (max-width:920px) {
+  .tactics-reader .tactics-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:760px) { .tactics-reader { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:500px) {
+  .tactics-reader .tactics-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #tactics-responsibilities { grid-template-columns:minmax(0,1fr); }
+  .tactics-token-label { grid-template-columns:minmax(0,1fr); justify-items:center; gap:1px; padding:2px 4px; }
+  .tactics-interactive .tactics-disc { width:29px; height:29px; }
+}

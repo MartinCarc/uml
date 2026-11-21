@@ -43,6 +43,25 @@
   });
   const snapshot = ({lineup,bench,roles,instructions,favorite}) => JSON.stringify({lineup,bench,roles,instructions,favorite});
   const roleLine = role => role === 'ARQ' ? 'arco' : role.startsWith('M') ? 'medio' : ['DC','SD','EI','ED'].includes(role) ? 'ataque' : 'defensa';
+  const readerIcons = {
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    pitch:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 12h16M9 3v4h6V3M9 21v-4h6v4"/><circle cx="12" cy="12" r="2.5"/>',
+    notes:'<path d="M5 5h14v11H9l-4 4zM8 9h8m-8 3h5"/>',
+    lineup:'<circle cx="12" cy="6" r="2"/><circle cx="6" cy="16" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="18" cy="16" r="2"/>',
+    bench:'<path d="M4 14h16v3H4zM6 17v3m12-3v3M6 11V5h12v6"/>',
+    tactics:'<path d="M4 6h16M4 12h16M4 18h16M8 4v4m8 2v4m-6 2v4"/>',
+    ball:'<circle cx="12" cy="12" r="9"/><path d="m12 8 4 3-1.5 4h-5L8 11zM12 8V3m4 8 4.5-2m-6 6 2.5 4.5m-7.5-4.5L7 19.5M8 11 3.5 9"/>'
+  };
+  const readerIcon = name => `<svg class="tactics-reader-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">${readerIcons[name]}</svg>`;
+
+  function readerNotes() {
+    return `<div class="tactics-reader-notes">
+      <h3>${readerIcon('notes')} Indicaciones del DT</h3>
+      <p class="tactics-instructions">${esc(board.instructions)||'Sin indicaciones adicionales.'}</p>
+    </div>
+    <h3 class="tactics-reader-roles-heading">${readerIcon('ball')} Capitán y pelota parada</h3>
+    <div id="tactics-responsibilities"></div>`;
+  }
 
   function applyScheme(scheme) {
     const slots = [[50,88,'ARQ'], ...formations[scheme].flatMap(([y,roles,xs]) => roles.map((role,i) => [xs[i],y,role]))];
@@ -94,8 +113,15 @@
       <div class="field"><label for="tactics-scheme">Formación</label><select id="tactics-scheme"><option value="">Libre</option>${Object.keys(formations).map(s=>opt(s,s,favorite.scheme)).join('')}</select></div>
       <div class="field"><label for="tactics-type">Táctica</label><select id="tactics-type"><option value="">Sin definir</option>${tacticTypes.map(t=>opt(t,t,favorite.type)).join('')}</select></div>
       ${tacticFields.map(([key,label])=>`<div class="tactics-point"><label for="tactics-point-${key}">${label}</label><input id="tactics-point-${key}" data-tactics-point="${key}" type="range" min="0" max="20" step="1" value="${favorite.points?.[key] ?? 10}" aria-valuetext="${favorite.points?.[key] ?? 'Sin definir'}"><output for="tactics-point-${key}">${favorite.points?.[key] ?? '—'}</output></div>`).join('')}
-    ` : `<div class="list-item"><b>Formación</b><span>${esc(favorite.scheme || 'Libre')}</span></div><div class="list-item"><b>Táctica</b><span>${esc(favorite.type || 'Sin definir')}</span></div>
-      ${tacticFields.map(([key,label])=>`<div class="list-item"><b>${label}</b><span>${favorite.points?.[key] ?? '—'}</span></div>`).join('')}`;
+    ` : `<dl class="tactics-reader-tactic">
+      <div><dt>Formación</dt><dd>${esc(favorite.scheme || 'Libre')}</dd></div>
+      <div><dt>Táctica</dt><dd>${esc(favorite.type || 'Sin definir')}</dd></div>
+    </dl>
+    <div class="tactics-reader-points">${tacticFields.map(([key,label])=>{
+      const value=favorite.points?.[key];
+      return `<div><span>${label}</span><b>${value == null ? '—' : `${esc(value)}<small> / 20</small>`}</b>
+        ${value == null ? '' : `<meter min="0" max="20" value="${esc(value)}" aria-label="${label}"></meter>`}</div>`;
+    }).join('')}</div>`;
     if(!edit)return;
     $('#tactics-scheme').onchange=e=>{
       if(e.target.value) applyScheme(e.target.value);
@@ -199,19 +225,23 @@
       favorite:JSON.parse(JSON.stringify(existing.favorite||{})),updatedAt:existing.updated_at,
       selected:existing.lineup?.[0]?.player_id,tab:'roles',edit:editable(cid),dirty:false};
     const edit=board.edit;
+    const icon=name=>edit?'':readerIcon(name);
+    const summaryTab=`<button type="button" data-tactics-tab="roles">${icon('notes')}${edit?'Roles y notas':'Resumen'}</button>`;
+    const history=`Última modificación · <time id="tactics-last-change"></time>`;
     $('#app').innerHTML = pageHead('Formación', esc(club(cid).name), `<a class="btn secondary" href="#/s/${sid}/equipo/${cid}">Ver equipo</a>${edit?'<button id="tactics-save" type="button">Guardar formación</button>':''}`) +
-      `<div class="alert info tactics-history">Última modificación · <time id="tactics-last-change"></time></div>
-      <p id="tactics-status" class="muted small" role="status"></p>
-      <div class="tactics-layout tactics-interactive">
-        <section class="card"><div class="row between mb"><h3 style="margin:0">Cancha</h3><span class="badge" id="tactics-count"></span></div>
+      `${edit?`<div class="alert info tactics-history">${history}</div><p id="tactics-status" class="muted small" role="status"></p>`:''}
+      <div class="tactics-layout tactics-interactive${edit?'':' tactics-reader'}">
+        ${edit?'':`<div class="tactics-reader-history muted small">${icon('clock')}<span>${history}</span></div>`}
+        <section class="card"><div class="row between mb"><h3 class="tactics-pitch-heading">${icon('pitch')} Cancha</h3><span class="badge" id="tactics-count"></span></div>
         <div id="tactics-pitch" class="tactics-pitch" aria-label="Campo vertical. Ataque hacia arriba"><div class="tactics-lines" aria-hidden="true"><i class="tactics-half"></i><i class="tactics-circle"></i><i class="tactics-area top"></i><i class="tactics-area bottom"></i></div><div id="tactics-pieces"></div></div></section>
         <div class="tactics-side">
           ${edit?'<section class="card" id="tactics-inspector"></section>':''}
           <section class="card"><div class="tabs tactics-tabs" aria-label="Opciones de formación">
-            <button type="button" data-tactics-tab="lineup">Titulares <span id="tactics-lineup-count"></span></button>
-            <button type="button" data-tactics-tab="bench">Banco <span id="tactics-bench-count"></span></button>
-            <button type="button" data-tactics-tab="roles">Roles y notas</button>
-            <button type="button" data-tactics-tab="favorite">Táctica favorita</button>
+            ${edit?'':summaryTab}
+            <button type="button" data-tactics-tab="lineup">${icon('lineup')}Titulares <span id="tactics-lineup-count"></span></button>
+            <button type="button" data-tactics-tab="bench">${icon('bench')}Banco <span id="tactics-bench-count"></span></button>
+            ${edit?summaryTab:''}
+            <button type="button" data-tactics-tab="favorite">${icon('tactics')}${edit?'Táctica favorita':'Táctica'}</button>
           </div>
           <div data-tactics-panel="lineup">
             ${edit?`<form id="tactics-add" class="mb"><div class="field"><label for="tactics-player">Jugador</label><select id="tactics-player" required></select></div><div class="field"><label for="tactics-position">Posición en la formación</label><select id="tactics-position">${positions('MC')}</select></div><button type="submit">Agregar al campo</button></form>`:''}
@@ -222,8 +252,8 @@
             <div id="tactics-bench" class="tactics-entries"></div>
           </div>
           <div data-tactics-panel="roles">
-            <h3>Capitán y pelota parada</h3><div id="tactics-responsibilities"></div>
-            <h3>Indicaciones para el simulador</h3>${edit?`<label class="sr-only" for="tactics-instructions">Indicaciones para el simulador</label><textarea id="tactics-instructions" rows="4" maxlength="4000">${esc(board.instructions)}</textarea>`:`<p class="tactics-instructions">${esc(board.instructions)||'Sin indicaciones adicionales.'}</p>`}
+            ${edit?`<h3>Capitán y pelota parada</h3><div id="tactics-responsibilities"></div>
+            <h3>Indicaciones para el simulador</h3><label class="sr-only" for="tactics-instructions">Indicaciones para el simulador</label><textarea id="tactics-instructions" rows="4" maxlength="4000">${esc(board.instructions)}</textarea>`:readerNotes()}
           </div>
           <div data-tactics-panel="favorite"><h3>Táctica favorita</h3><div id="tactics-favorite"></div></div>
           </section>
@@ -267,7 +297,7 @@
   function render() {
     const { lineup, bench, edit } = board;
     $('#tactics-count').textContent = `${lineup.length}/11 · Ataque ↑`;
-    $('#tactics-lineup-count').textContent = `· ${lineup.length}`;
+    $('#tactics-lineup-count').textContent = edit ? `· ${lineup.length}` : lineup.length;
     $('#tactics-pieces').innerHTML = lineup.map((p,i)=>{
       const fullName=name(p.player_id), player=U.player(p.player_id);
       const label=shortName(p,fullName);
@@ -283,13 +313,14 @@
       <div>${U.playerLabel(U.player(p.player_id)||{name:name(p.player_id)})} ${U.sancBadges(p.player_id)}
       ${!allowed(p.player_id)?'<span class="sanc">Fuera del plantel</span>':''}</div>
       ${edit?`<button type="button" class="xs secondary" data-pick="${i}">Editar</button><button type="button" class="xs danger" data-remove="${i}" aria-label="Quitar ${esc(name(p.player_id))}">Quitar</button>`:''}</div>`).join('') || '<p class="muted small">Sin jugadores en el campo.</p>';
-    $('#tactics-bench-count').textContent = `· ${bench.length}/12`;
+    $('#tactics-bench-count').textContent = edit ? `· ${bench.length}/12` : bench.length;
     $('#tactics-bench').innerHTML = bench.map((id, i) => `<div class="tactics-row">${U.positionBadge(U.player(id)?.position || '—')}<div><b>${U.playerLabel(U.player(id)||{name:name(id)})}</b>${!allowed(id) ? '<div class="sanc">Ya no pertenece al plantel</div>' : ''}${U.sancBadges(id)}</div>${edit ? `<button type="button" class="xs danger" data-bench-remove="${i}" aria-label="Quitar del banco a ${esc(name(id))}">Quitar</button>` : ''}</div>`).join('') || '<p class="muted small">Sin suplentes seleccionados.</p>';
     $('#tactics-responsibilities').innerHTML = Object.entries(responsibilities).map(([key,label]) => {
       const selected = board.roles[key] || '';
+      if (!edit) return `<div class="tactics-reader-role"><span>${label}</span><b class="${selected?'':'muted'}">${selected ? esc(name(selected)) : 'Sin asignar'}</b></div>`;
       const candidates = lineup.map((p) => opt(p.player_id, name(p.player_id), selected)).join('');
       const missing = selected && !lineup.some((p) => p.player_id === selected) ? opt(selected, name(selected) + ' (ya no es titular)', selected) : '';
-      return edit ? `<div class="field"><label for="tactics-role-${key}">${label}</label><select id="tactics-role-${key}" data-role="${key}"><option value="">Sin asignar</option>${missing}${candidates}</select></div>` : `<div class="list-item"><b>${label}</b><span>${selected ? esc(name(selected)) : 'Sin asignar'}</span></div>`;
+      return `<div class="field"><label for="tactics-role-${key}">${label}</label><select id="tactics-role-${key}" data-role="${key}"><option value="">Sin asignar</option>${missing}${candidates}</select></div>`;
     }).join('');
     if (!edit) return;
     drawInspector();

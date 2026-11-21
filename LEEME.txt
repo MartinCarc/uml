@@ -1,11 +1,17 @@
-UML — MENÚ POR CATEGORÍA
+Formación interactiva · Corrección de estilos publicados
 
-Si todavía vas a publicar el Panel del DT, aplicá primero ese paquete.
-Para esta actualización reemplazá en GitHub:
-- js/core.js dentro de la carpeta js/.
-- styles.css y AGENTS.md en la raíz, junto a index.html.
+Reemplazá estos tres archivos juntos en tu repositorio de GitHub:
+- index.html, en la raíz.
+- styles.css, en la raíz.
+- tactics.js, dentro de js/.
 
-Esperá el despliegue de Vercel y recargá. No hace falta ejecutar SQL.
-El escudo original abre Inicio. Competencias, Mercado y Clubes y jugadores
-se despliegan al tocarlos. El menú se cierra con Escape, al elegir un enlace
-o al pulsar fuera.
+Si los editás desde GitHub, copiá el contenido completo de cada archivo.
+index.html apunta a una versión nueva de la hoja de estilos para que
+el navegador descargue los cambios en la próxima visita.
+
+Verificá que Vercel termine de publicar. Entrá a Formación y elegí un
+jugador en la cancha. Deberías ver el aro de selección, las etiquetas
+compactas y la cancha verde oscura del boceto.
+
+El ZIP también incluye la vista simplificada del simulador de la
+entrega anterior. Esta corrección no agrega ninguna migración de Supabase.
